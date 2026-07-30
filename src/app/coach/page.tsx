@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import type { CoachPlan, CoachStats } from "@/lib/types";
+import type { CoachPlan, CoachStats, CoachPlanRecord } from "@/lib/types";
 
 const DIFF_STYLE: Record<string, string> = {
   基础: "bg-emerald-100 text-emerald-700",
@@ -16,12 +16,46 @@ const TREND_BADGE: Record<string, string> = {
   平稳: "→ 平稳",
 };
 
+function fmtTime(ts: string): string {
+  const d = new Date(ts);
+  if (Number.isNaN(d.getTime())) return ts;
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+// 历史记录名称：时间 + 需求简要
+function recordName(rec: CoachPlanRecord): string {
+  const brief = rec.goal.trim()
+    ? rec.goal.trim().length > 18
+      ? rec.goal.trim().slice(0, 18) + "…"
+      : rec.goal.trim()
+    : "未填目标";
+  return `${fmtTime(rec.createdAt)} · ${brief}`;
+}
+
 export default function CoachPage() {
   const [goal, setGoal] = useState("");
   const [loading, setLoading] = useState(false);
   const [plan, setPlan] = useState<CoachPlan | null>(null);
   const [stats, setStats] = useState<CoachStats | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const [history, setHistory] = useState<CoachPlanRecord[]>([]);
+  const [activeId, setActiveId] = useState<number | null>(null);
+
+  async function loadHistory() {
+    try {
+      const res = await fetch("/api/coach", { method: "GET" });
+      const data = await res.json();
+      if (res.ok && Array.isArray(data.plans)) setHistory(data.plans);
+    } catch {
+      /* 忽略读取失败 */
+    }
+  }
+
+  useEffect(() => {
+    loadHistory();
+  }, []);
 
   async function generate() {
     setLoading(true);
@@ -36,11 +70,19 @@ export default function CoachPage() {
       if (!res.ok) throw new Error(data.error || "生成失败");
       setPlan(data.plan as CoachPlan);
       setStats(data.stats as CoachStats);
+      setActiveId(null);
+      await loadHistory();
     } catch (e) {
       setError(e instanceof Error ? e.message : "生成失败");
     } finally {
       setLoading(false);
     }
+  }
+
+  function viewRecord(rec: CoachPlanRecord) {
+    setPlan(rec.plan);
+    setStats(null); // 历史方案不展示当时数据洞察，仅展示方案
+    setActiveId(rec.id);
   }
 
   const trendKey = stats
@@ -84,7 +126,7 @@ export default function CoachPage() {
         {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
       </section>
 
-      {/* 概览数据 */}
+      {/* 概览数据（仅刚生成的方案展示） */}
       {stats && (
         <section className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
           <Stat label="练习次数" value={String(stats.total)} />
@@ -100,7 +142,7 @@ export default function CoachPage() {
         </section>
       )}
 
-      {/* 数据洞察 */}
+      {/* 数据洞察（仅刚生成的方案展示） */}
       {stats && stats.total > 0 && (
         <section className="mt-4 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
           <h3 className="mb-3 text-sm font-semibold text-zinc-800">数据洞察</h3>
@@ -153,86 +195,131 @@ export default function CoachPage() {
         </section>
       )}
 
-      {/* 训练方案 */}
-      {plan && (
-        <section className="mt-6 rounded-2xl border border-indigo-200 bg-white p-6 shadow-sm">
-          <h2 className="text-xl font-bold text-zinc-900">
-            {plan.level} · 专属训练方案
-          </h2>
-          <p className="mt-2 text-sm text-zinc-600">{plan.summary}</p>
+      {/* 当前/查看的方案 */}
+      {plan && <PlanCard plan={plan} />}
 
-          {plan.focusDimensions?.length > 0 && (
-            <div className="mt-3">
-              <span className="text-xs font-medium text-zinc-500">重点提升：</span>
-              {plan.focusDimensions.map((d) => (
-                <span
-                  key={d}
-                  className="ml-1.5 inline-block rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs text-indigo-700"
-                >
-                  {d}
-                </span>
-              ))}
-            </div>
-          )}
-
-          <div className="mt-4 space-y-3">
-            {plan.weeklyPlan?.map((d, i) => (
-              <div
-                key={i}
-                className="flex gap-3 rounded-xl border border-zinc-200 p-3"
+      {/* 历史方案列表 */}
+      <section className="mt-8">
+        <h3 className="mb-3 text-sm font-semibold text-zinc-800">
+          历史方案
+          <span className="ml-2 text-xs font-normal text-zinc-400">
+            （名称 = 时间 + 需求简要，点击可回看）
+          </span>
+        </h3>
+        {history.length === 0 ? (
+          <p className="text-xs text-zinc-400">
+            还没有历史方案，生成一次后会出现在这里。
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {history.map((rec) => (
+              <button
+                key={rec.id}
+                onClick={() => viewRecord(rec)}
+                className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left transition ${
+                  activeId === rec.id
+                    ? "border-indigo-300 bg-indigo-50"
+                    : "border-zinc-200 bg-white hover:border-indigo-200"
+                }`}
               >
-                <div className="w-16 shrink-0 text-sm font-semibold text-zinc-700">
-                  {d.day}
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-zinc-800">
-                      {d.scene}
-                    </span>
-                    <span
-                      className={`rounded px-2 py-0.5 text-xs ${
-                        DIFF_STYLE[d.difficulty] || "bg-zinc-100 text-zinc-600"
-                      }`}
-                    >
-                      {d.difficulty}
-                    </span>
+                <div className="min-w-0">
+                  <div className="truncate text-sm font-medium text-zinc-800">
+                    {recordName(rec)}
                   </div>
-                  <p className="mt-1 text-xs text-zinc-500">重点：{d.focus}</p>
-                  <p className="mt-0.5 text-sm text-zinc-700">{d.task}</p>
+                  <div className="mt-0.5 truncate text-xs text-zinc-500">
+                    {rec.plan.summary}
+                  </div>
                 </div>
-              </div>
+                <span className="ml-3 shrink-0 rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs text-zinc-600">
+                  {rec.level}
+                </span>
+              </button>
             ))}
           </div>
-
-          {plan.dynamicNote && (
-            <div className="mt-4 rounded-lg bg-zinc-50 p-3 text-xs text-zinc-600">
-              <span className="font-medium text-zinc-700">难度动态调整：</span>
-              {plan.dynamicNote}
-            </div>
-          )}
-
-          {plan.tips?.length > 0 && (
-            <div className="mt-3">
-              <p className="text-xs font-medium text-zinc-500">训练建议</p>
-              <ul className="mt-1 list-disc space-y-0.5 pl-5 text-xs text-zinc-600">
-                {plan.tips.map((t, i) => (
-                  <li key={i}>{t}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          <div className="mt-5">
-            <Link
-              href="/"
-              className="rounded-lg bg-zinc-900 px-4 py-2 text-sm text-white hover:bg-zinc-700"
-            >
-              去练习 →
-            </Link>
-          </div>
-        </section>
-      )}
+        )}
+      </section>
     </main>
+  );
+}
+
+function PlanCard({ plan }: { plan: CoachPlan }) {
+  return (
+    <section className="mt-6 rounded-2xl border border-indigo-200 bg-white p-6 shadow-sm">
+      <h2 className="text-xl font-bold text-zinc-900">
+        {plan.level} · 专属训练方案
+      </h2>
+      <p className="mt-2 text-sm text-zinc-600">{plan.summary}</p>
+
+      {plan.focusDimensions?.length > 0 && (
+        <div className="mt-3">
+          <span className="text-xs font-medium text-zinc-500">重点提升：</span>
+          {plan.focusDimensions.map((d) => (
+            <span
+              key={d}
+              className="ml-1.5 inline-block rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs text-indigo-700"
+            >
+              {d}
+            </span>
+          ))}
+        </div>
+      )}
+
+      <div className="mt-4 space-y-3">
+        {plan.weeklyPlan?.map((d, i) => (
+          <div
+            key={i}
+            className="flex gap-3 rounded-xl border border-zinc-200 p-3"
+          >
+            <div className="w-16 shrink-0 text-sm font-semibold text-zinc-700">
+              {d.day}
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-zinc-800">
+                  {d.scene}
+                </span>
+                <span
+                  className={`rounded px-2 py-0.5 text-xs ${
+                    DIFF_STYLE[d.difficulty] || "bg-zinc-100 text-zinc-600"
+                  }`}
+                >
+                  {d.difficulty}
+                </span>
+              </div>
+              <p className="mt-1 text-xs text-zinc-500">重点：{d.focus}</p>
+              <p className="mt-0.5 text-sm text-zinc-700">{d.task}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {plan.dynamicNote && (
+        <div className="mt-4 rounded-lg bg-zinc-50 p-3 text-xs text-zinc-600">
+          <span className="font-medium text-zinc-700">难度动态调整：</span>
+          {plan.dynamicNote}
+        </div>
+      )}
+
+      {plan.tips?.length > 0 && (
+        <div className="mt-3">
+          <p className="text-xs font-medium text-zinc-500">训练建议</p>
+          <ul className="mt-1 list-disc space-y-0.5 pl-5 text-xs text-zinc-600">
+            {plan.tips.map((t, i) => (
+              <li key={i}>{t}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <div className="mt-5">
+        <Link
+          href="/"
+          className="rounded-lg bg-zinc-900 px-4 py-2 text-sm text-white hover:bg-zinc-700"
+        >
+          去练习 →
+        </Link>
+      </div>
+    </section>
   );
 }
 

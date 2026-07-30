@@ -1,5 +1,12 @@
 import { createClient, type Client } from "@libsql/client";
-import type { ExerciseRecord, ScoreDimensions, Scene, SentenceAnalysis } from "./types";
+import type {
+  ExerciseRecord,
+  ScoreDimensions,
+  Scene,
+  SentenceAnalysis,
+  CoachPlan,
+  CoachPlanRecord,
+} from "./types";
 
 let client: Client | null = null;
 let initialized = false;
@@ -39,6 +46,16 @@ export async function initDb(): Promise<void> {
   } catch {
     /* 列已存在 */
   }
+  await c.execute(`
+    CREATE TABLE IF NOT EXISTS coach_plans (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      created_at TEXT NOT NULL,
+      goal TEXT NOT NULL,
+      level TEXT NOT NULL,
+      summary TEXT NOT NULL,
+      plan TEXT NOT NULL
+    );
+  `);
   initialized = true;
 }
 
@@ -105,5 +122,47 @@ function mapRow(r: Record<string, unknown>): ExerciseRecord {
       ? (JSON.parse(String(r.sentences)) as SentenceAnalysis[])
       : [],
     createdAt: String(r.created_at),
+  };
+}
+
+export async function saveCoachPlan(rec: {
+  goal: string;
+  level: string;
+  summary: string;
+  plan: CoachPlan;
+}): Promise<number> {
+  await initDb();
+  const c = getClient();
+  const createdAt = new Date().toISOString();
+  const result = await c.execute({
+    sql: `INSERT INTO coach_plans (created_at, goal, level, summary, plan) VALUES (?, ?, ?, ?, ?)`,
+    args: [
+      createdAt,
+      rec.goal,
+      rec.level,
+      rec.summary,
+      JSON.stringify(rec.plan),
+    ],
+  });
+  return Number(result.lastInsertRowid);
+}
+
+export async function listCoachPlans(): Promise<CoachPlanRecord[]> {
+  await initDb();
+  const c = getClient();
+  const rows = await c.execute(
+    `SELECT * FROM coach_plans ORDER BY created_at DESC LIMIT 100`,
+  );
+  return rows.rows.map((r) => mapCoachRow(r as Record<string, unknown>));
+}
+
+function mapCoachRow(r: Record<string, unknown>): CoachPlanRecord {
+  return {
+    id: Number(r.id),
+    createdAt: String(r.created_at),
+    goal: String(r.goal),
+    level: String(r.level),
+    summary: String(r.summary),
+    plan: JSON.parse(String(r.plan)) as CoachPlan,
   };
 }

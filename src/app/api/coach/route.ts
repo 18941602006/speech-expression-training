@@ -1,5 +1,5 @@
 import { callDeepSeek, MissingKeyError, type ChatMessage } from "@/lib/llm";
-import { listExercises } from "@/lib/db";
+import { listExercises, saveCoachPlan, listCoachPlans } from "@/lib/db";
 import {
   SCENE_LABELS,
   DIMENSION_ORDER,
@@ -219,7 +219,21 @@ export async function POST(req: Request) {
     if (!Array.isArray(plan.weeklyPlan) || plan.weeklyPlan.length === 0) {
       plan.weeklyPlan = fallbackPlan(stats, goal).weeklyPlan;
     }
-    return Response.json({ plan, stats });
+
+    // 落库保存为一条历史记录（名称=时间+需求简要，由前端/接口使用）
+    let savedId: number | null = null;
+    try {
+      savedId = await saveCoachPlan({
+        goal,
+        level: plan.level,
+        summary: plan.summary,
+        plan,
+      });
+    } catch {
+      // 保存失败不影响方案展示
+    }
+
+    return Response.json({ plan, stats, savedId });
   } catch (e) {
     if (e instanceof MissingKeyError) {
       return Response.json(
@@ -228,6 +242,17 @@ export async function POST(req: Request) {
       );
     }
     const msg = e instanceof Error ? e.message : "教练系统生成失败";
+    return Response.json({ error: msg }, { status: 500 });
+  }
+}
+
+// 获取历史方案列表（名称=时间+需求简要，由 createdAt + goal 组成）
+export async function GET() {
+  try {
+    const plans = await listCoachPlans();
+    return Response.json({ plans });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "读取教练历史失败";
     return Response.json({ error: msg }, { status: 500 });
   }
 }

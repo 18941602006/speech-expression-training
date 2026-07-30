@@ -102,3 +102,13 @@ export interface CoachStats {
   topWaste: { word: string; count: number }[]; // 高频废话/填充词
   trend: string; // 难度动态调整依据（趋势描述）
 }
+
+// 已保存的教练方案历史记录
+export interface CoachPlanRecord {
+  id: number;
+  createdAt: string; // ISO 时间
+  goal: string; // 需求简要（用户填写的目标，可能为空）
+  level: string; // 水平档位
+  summary: string; // 概述
+  plan: CoachPlan; // 完整方案
+}
