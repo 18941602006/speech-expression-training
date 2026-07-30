@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
 import Link from "next/link";
 import {
   SCENE_LABELS,
@@ -65,6 +65,8 @@ export default function Home() {
   const recognitionRef = useRef<any>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
   const analysisScrollRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const [inputH, setInputH] = useState(72);
 
   // 自动滚动到最新：两栏都跟随内容底部
   useEffect(() => {
@@ -75,6 +77,11 @@ export default function Home() {
     const el = analysisScrollRef.current;
     if (el) el.scrollTop = el.scrollHeight;
   }, [analyses]);
+  // 输入框：内容新增时自动滚动到底部，始终显示最新文字（与拖拽改高度互不干扰）
+  useEffect(() => {
+    const el = inputRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [chatInput]);
 
   function greetingFor(s: Scene, t: Topic | null): string {
     const role = ROLE_NAME[s];
@@ -146,6 +153,24 @@ export default function Home() {
     setChat([{ role: "assistant", content: greetingFor(scene, t) }]);
     setAnalyses([null]);
     setSavedOk(false);
+  }
+
+  // 拖拽调整输入框高度：top 边向上拉、bottom 边向下拉，均改变同一高度值
+  function startResize(e: ReactMouseEvent, edge: "top" | "bottom") {
+    e.preventDefault();
+    const startY = e.clientY;
+    const startH = inputH;
+    const onMove = (ev: MouseEvent) => {
+      const dy = ev.clientY - startY;
+      const delta = edge === "top" ? -dy : dy;
+      setInputH(Math.max(48, Math.min(360, startH + delta)));
+    };
+    const onUp = () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
   }
 
   function toggleListen() {
@@ -381,19 +406,34 @@ export default function Home() {
             {chatBusy && <div className="text-xs text-zinc-400">对方正在输入…</div>}
           </div>
           <div className="mt-3 flex items-end gap-2">
-            <textarea
-              value={chatInput}
-              onChange={(e) => setChatInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  sendChat();
-                }
-              }}
-              rows={2}
-              placeholder="说点什么，或点 🎤 语音输入（Enter 发送，Shift+Enter 换行）"
-              className="flex-1 resize-none rounded-lg border border-zinc-300 p-2 text-sm outline-none focus:border-indigo-400"
-            />
+            <div className="relative flex-1">
+              {/* 顶部拖拽手柄：向上拉高 */}
+              <div
+                onMouseDown={(e) => startResize(e, "top")}
+                title="拖拽调整输入框高度"
+                className="absolute -top-1.5 left-0 right-0 z-10 h-2 cursor-ns-resize rounded-full bg-zinc-200/70 hover:bg-indigo-300"
+              />
+              <textarea
+                ref={inputRef}
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    sendChat();
+                  }
+                }}
+                style={{ height: inputH }}
+                placeholder="说点什么，或点 🎤 语音输入（Enter 发送，Shift+Enter 换行）"
+                className="w-full resize-none overflow-auto rounded-lg border border-zinc-300 p-2 text-sm outline-none focus:border-indigo-400"
+              />
+              {/* 底部拖拽手柄：向下拉高 */}
+              <div
+                onMouseDown={(e) => startResize(e, "bottom")}
+                title="拖拽调整输入框高度"
+                className="absolute -bottom-1.5 left-0 right-0 z-10 h-2 cursor-ns-resize rounded-full bg-zinc-200/70 hover:bg-indigo-300"
+              />
+            </div>
             <button
               onClick={toggleListen}
               className={`rounded-lg px-3 py-2 text-sm text-white ${
