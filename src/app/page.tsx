@@ -21,6 +21,10 @@ const SCENE_DESC: Record<Scene, string> = {
   debate: "立论、反驳、攻防",
 };
 
+// 输入框高度上下限（px）：底边固定、顶边可拖，限制在一个合理范围内
+const INPUT_MIN = 56;
+const INPUT_MAX = 260;
+
 // 问题编号的彩色圈数字：①红 ②琥珀 ③蓝 ④紫 ⑤青 ⑥粉 ⑦绿 ⑧橙 ⑨靛 ⑩青蓝
 const CIRCLE_COLORS = [
   "bg-red-500",
@@ -155,14 +159,15 @@ export default function Home() {
     setSavedOk(false);
   }
 
-  // 拖拽调整输入框高度：输入框位于面板底部、顶部固定向下生长，故仅底部手柄有效（向下拉变大、向上拉变小）
+  // 拖拽调整输入框高度：输入框位于面板底部、底边固定，仅顶部手柄可拖（向上拉变高、向下拉变矮），并限制上下限
   function startResize(e: ReactMouseEvent) {
     e.preventDefault();
     const startY = e.clientY;
     const startH = inputH;
     const onMove = (ev: MouseEvent) => {
-      const dy = ev.clientY - startY;
-      setInputH(Math.max(48, Math.min(360, startH + dy)));
+      const dy = ev.clientY - startY; // 向下拖为正
+      // 顶边手柄：向下拖变矮、向上拖变高（startH - dy）
+      setInputH(Math.max(INPUT_MIN, Math.min(INPUT_MAX, startH - dy)));
     };
     const onUp = () => {
       window.removeEventListener("mousemove", onMove);
@@ -406,6 +411,14 @@ export default function Home() {
           </div>
           <div className="mt-3 flex items-end gap-2">
             <div className="group relative flex-1">
+              {/* 顶部拖拽手柄：向上拉变高、向下拉变矮（底边固定，符合「顶部可调、下部无用」的预期） */}
+              <div
+                onMouseDown={(e) => startResize(e)}
+                title="拖拽调整输入框高度（底边固定）"
+                className="absolute -top-2 left-0 right-0 z-10 flex h-3 cursor-ns-resize items-center justify-center"
+              >
+                <span className="h-1 w-12 rounded-full bg-zinc-300 transition-colors group-hover:bg-indigo-400" />
+              </div>
               <textarea
                 ref={inputRef}
                 value={chatInput}
@@ -420,14 +433,6 @@ export default function Home() {
                 placeholder="说点什么，或点 🎤 语音输入（Enter 发送，Shift+Enter 换行）"
                 className="w-full resize-none overflow-auto rounded-lg border border-zinc-300 p-2 text-sm outline-none focus:border-indigo-400"
               />
-              {/* 底部拖拽手柄：向下拖变大、向上拖变小（输入框位于面板底部、向下生长，此手柄符合直觉且不遮挡上方对话） */}
-              <div
-                onMouseDown={(e) => startResize(e)}
-                title="拖拽调整输入框高度"
-                className="absolute -bottom-2 left-0 right-0 z-10 flex h-3 cursor-ns-resize items-center justify-center"
-              >
-                <span className="h-1 w-12 rounded-full bg-zinc-300 transition-colors group-hover:bg-indigo-400" />
-              </div>
             </div>
             <button
               onClick={toggleListen}
