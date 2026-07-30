@@ -75,9 +75,13 @@ export async function POST(req: Request) {
             '"fluency": 流畅与节奏(1-10),' +
             '"verbose": 啰嗦词控制(1-10，越高表示越少“那个”、重复词等啰嗦表达)' +
             "}," +
+            '"sentences": [{' +
+            '"index": 句序号(从1开始),' +
+            '"segments": [{"text": 片段原文, "isWaste": 布尔(该片段是否为可省略的废话、填充词或啰嗦重复表达), "reason": 若该片段是废话则说明为何可省略, 不是废话则为空字符串}],' +
+            '"comment": 对该句的整体点评(可选, 没有则空字符串)}],' +
             '"suggestions": [3-5条具体可操作的改进建议],' +
             '"betterVersion": 一段明显更好的示范表达}' +
-            "。请特别留意并指正“那个”“然后然后”等填充词和重复词。",
+            "。请按语义把用户的表达拆成若干“句”，每句再切成片段，把可以省略的填充词（如“那个”“然后”“就是说”“其实”“呃”“这个”）、口头禅、以及啰嗦重复的表达标记为 isWaste=true 并说明原因；保留必要的连接词、语义词和停顿。",
         },
         {
           role: "user",
@@ -98,6 +102,7 @@ export async function POST(req: Request) {
         },
         suggestions: ["（AI 返回格式异常，建议重试）"],
         betterVersion: "",
+        sentences: [],
       });
       // 数值兜底
       const clamp = (n: number) => Math.max(1, Math.min(10, Math.round(n || 5)));

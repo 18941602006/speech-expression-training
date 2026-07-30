@@ -1,5 +1,5 @@
 import { createClient, type Client } from "@libsql/client";
-import type { ExerciseRecord, ScoreDimensions, Scene } from "./types";
+import type { ExerciseRecord, ScoreDimensions, Scene, SentenceAnalysis } from "./types";
 
 let client: Client | null = null;
 let initialized = false;
@@ -27,9 +27,18 @@ export async function initDb(): Promise<void> {
       dimensions TEXT NOT NULL,
       suggestions TEXT NOT NULL,
       better_version TEXT NOT NULL,
+      sentences TEXT NOT NULL,
       created_at TEXT NOT NULL
     );
   `);
+  // 旧库可能还没有 sentences 列，幂等补列（已存在则忽略报错）
+  try {
+    await c.execute(
+      `ALTER TABLE exercises ADD COLUMN sentences TEXT NOT NULL DEFAULT '[]'`,
+    );
+  } catch {
+    /* 列已存在 */
+  }
   initialized = true;
 }
 
@@ -43,6 +52,7 @@ export interface NewExercise {
   dimensions: ScoreDimensions;
   suggestions: string[];
   betterVersion: string;
+  sentences: SentenceAnalysis[];
 }
 
 export async function saveExercise(rec: NewExercise): Promise<number> {
@@ -51,8 +61,8 @@ export async function saveExercise(rec: NewExercise): Promise<number> {
   const createdAt = new Date().toISOString();
   const result = await c.execute({
     sql: `INSERT INTO exercises
-      (scene, topic_title, topic_prompt, user_input, transcript, overall, dimensions, suggestions, better_version, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      (scene, topic_title, topic_prompt, user_input, transcript, overall, dimensions, suggestions, better_version, sentences, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     args: [
       rec.scene,
       rec.topicTitle,
@@ -63,6 +73,7 @@ export async function saveExercise(rec: NewExercise): Promise<number> {
       JSON.stringify(rec.dimensions),
       JSON.stringify(rec.suggestions),
       rec.betterVersion,
+      JSON.stringify(rec.sentences),
       createdAt,
     ],
   });
@@ -90,6 +101,9 @@ function mapRow(r: Record<string, unknown>): ExerciseRecord {
     dimensions: JSON.parse(String(r.dimensions)) as ScoreDimensions,
     suggestions: JSON.parse(String(r.suggestions)) as string[],
     betterVersion: String(r.better_version),
+    sentences: r.sentences
+      ? (JSON.parse(String(r.sentences)) as SentenceAnalysis[])
+      : [],
     createdAt: String(r.created_at),
   };
 }

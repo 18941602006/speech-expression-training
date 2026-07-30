@@ -1,5 +1,5 @@
 import { initDb, listExercises, saveExercise, type NewExercise } from "@/lib/db";
-import type { ScoreDimensions, Scene } from "@/lib/types";
+import type { ScoreDimensions, Scene, SentenceAnalysis } from "@/lib/types";
 
 export const runtime = "nodejs";
 
@@ -37,6 +37,9 @@ export async function POST(req: Request) {
     dimensions,
     suggestions: Array.isArray(body.suggestions) ? (body.suggestions as string[]) : [],
     betterVersion: String(body.betterVersion || ""),
+    sentences: Array.isArray(body.sentences)
+      ? (body.sentences as SentenceAnalysis[])
+      : [],
   };
 
   try {

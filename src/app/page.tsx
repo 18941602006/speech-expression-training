@@ -222,6 +222,7 @@ export default function Home() {
           dimensions: score.dimensions,
           suggestions: score.suggestions,
           betterVersion: score.betterVersion,
+          sentences: score.sentences,
         }),
       });
       const data = await res.json();
@@ -361,6 +362,57 @@ export default function Home() {
               </div>
             ))}
           </div>
+          {score.sentences && score.sentences.length > 0 && (
+            <div className="mt-5">
+              <h3 className="text-sm font-semibold text-zinc-800">逐句分析</h3>
+              <p className="mt-1 text-xs text-zinc-400">
+                橙色高亮为可省略的废话 / 填充词，鼠标悬停看原因。
+              </p>
+              <div className="mt-3 space-y-3">
+                {score.sentences.map((s, i) => (
+                  <div
+                    key={i}
+                    className="rounded-lg border border-zinc-100 bg-zinc-50 p-3"
+                  >
+                    <div className="flex gap-2">
+                      <span className="mt-0.5 text-xs font-medium text-zinc-400">
+                        {i + 1}
+                      </span>
+                      <p className="flex-1 text-sm leading-relaxed text-zinc-800">
+                        {s.segments.map((seg, j) =>
+                          seg.isWaste ? (
+                            <span
+                              key={j}
+                              title={seg.reason || "可省略"}
+                              className="rounded bg-orange-100 px-0.5 text-orange-700"
+                            >
+                              {seg.text}
+                            </span>
+                          ) : (
+                            <span key={j}>{seg.text}</span>
+                          ),
+                        )}
+                      </p>
+                    </div>
+                    {s.comment && (
+                      <p className="mt-1 pl-5 text-xs text-zinc-500">点评：{s.comment}</p>
+                    )}
+                    {s.segments.some((seg) => seg.isWaste) && (
+                      <ul className="mt-1 space-y-0.5 pl-5 text-xs text-orange-600">
+                        {s.segments
+                          .filter((seg) => seg.isWaste)
+                          .map((seg, j) => (
+                            <li key={j}>
+                              ⚠ 可省略「{seg.text}」{seg.reason ? ` — ${seg.reason}` : ""}
+                            </li>
+                          ))}
+                      </ul>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           <div className="mt-5">
             <h3 className="text-sm font-semibold text-zinc-800">改进建议</h3>
             <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-zinc-700">

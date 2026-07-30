@@ -16,9 +16,22 @@ export type ScoreDimensions = {
   verbose: number; // 啰嗦词控制
 };
 
+export interface SentenceSegment {
+  text: string;
+  isWaste: boolean;
+  reason?: string;
+}
+
+export interface SentenceAnalysis {
+  index: number;
+  segments: SentenceSegment[];
+  comment?: string;
+}
+
 export interface ScoreResult {
   overall: number;
   dimensions: ScoreDimensions;
+  sentences: SentenceAnalysis[];
   suggestions: string[];
   betterVersion: string;
 }
@@ -32,6 +45,7 @@ export interface ExerciseRecord {
   transcript: string | null;
   overall: number;
   dimensions: ScoreDimensions;
+  sentences: SentenceAnalysis[];
   suggestions: string[];
   betterVersion: string;
   createdAt: string;
