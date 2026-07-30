@@ -389,10 +389,22 @@ export default function Home() {
 
         {/* 右栏：实时表达分析 */}
         <section className="flex flex-col rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
-          <h3 className="mb-1 text-sm font-semibold text-zinc-800">实时表达分析</h3>
-          <p className="mb-3 text-xs text-zinc-400">
-            橙色高亮为可省略的废话 / 填充词，悬停看原因。与左栏对话同步滚动。
-          </p>
+          <h3 className="mb-2 text-sm font-semibold text-zinc-800">实时表达分析</h3>
+          {/* 颜色图例：一眼区分原句 / 废话 / 建议 */}
+          <div className="mb-3 flex flex-wrap gap-x-4 gap-y-1 text-xs">
+            <span className="inline-flex items-center gap-1.5 text-zinc-500">
+              <span className="inline-block h-3 w-3 rounded bg-zinc-100 ring-1 ring-zinc-300" />
+              原句
+            </span>
+            <span className="inline-flex items-center gap-1.5 text-red-600">
+              <span className="inline-block h-3 w-3 rounded bg-red-100 ring-1 ring-red-300" />
+              废话（红色删除线）
+            </span>
+            <span className="inline-flex items-center gap-1.5 text-emerald-700">
+              <span className="inline-block h-3 w-3 rounded bg-emerald-100 ring-1 ring-emerald-300" />
+              建议说法（绿底）
+            </span>
+          </div>
           <div
             ref={analysisScrollRef}
             className="h-[58vh] space-y-3 overflow-y-auto rounded-xl bg-zinc-50 p-3"
@@ -418,45 +430,68 @@ export default function Home() {
                     <>
                       {a.sentences.length > 0 && (
                         <div className="mt-2 space-y-2">
-                          {a.sentences.map((s, si) => (
-                            <div key={si}>
-                              <p className="flex flex-wrap gap-0 text-sm leading-relaxed text-zinc-800">
-                                {s.segments.map((seg, j) =>
-                                  seg.isWaste ? (
-                                    <span
-                                      key={j}
-                                      title={seg.reason || "可省略"}
-                                      className="rounded bg-orange-100 px-0.5 text-orange-700"
-                                    >
-                                      {seg.text}
-                                    </span>
-                                  ) : (
-                                    <span key={j}>{seg.text}</span>
-                                  ),
+                          {a.sentences.map((s, si) => {
+                            const wastes = s.segments.filter((x) => x.isWaste);
+                            const hasWaste = wastes.length > 0;
+                            const clean = s.segments
+                              .filter((x) => !x.isWaste)
+                              .map((x) => x.text)
+                              .join("");
+                            return (
+                              <div key={si} className="rounded-lg border border-zinc-200 p-2">
+                                {/* 原句：废话用红色删除线，普通词正常显示 */}
+                                <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-zinc-400">
+                                  原句
+                                </p>
+                                <p className="flex flex-wrap gap-0 text-sm leading-relaxed text-zinc-800">
+                                  {s.segments.map((seg, j) =>
+                                    seg.isWaste ? (
+                                      <span
+                                        key={j}
+                                        title={seg.reason || "可省略"}
+                                        className="rounded bg-red-100 px-0.5 text-red-600 line-through decoration-red-400 decoration-2"
+                                      >
+                                        {seg.text}
+                                      </span>
+                                    ) : (
+                                      <span key={j}>{seg.text}</span>
+                                    ),
+                                  )}
+                                </p>
+                                {/* 建议说法：去掉废话后的干净版本，绿底对照 */}
+                                {hasWaste && (
+                                  <div className="mt-2 rounded-md bg-emerald-50 p-2">
+                                    <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-wide text-emerald-600">
+                                      建议说法（去掉废话）
+                                    </p>
+                                    <p className="text-sm leading-relaxed text-emerald-900">
+                                      {clean}
+                                    </p>
+                                  </div>
                                 )}
-                              </p>
-                              {s.comment && (
-                                <p className="mt-0.5 text-xs text-zinc-500">点评：{s.comment}</p>
-                              )}
-                              {s.segments.some((x) => x.isWaste) && (
-                                <ul className="mt-0.5 space-y-0.5 text-xs text-orange-600">
-                                  {s.segments
-                                    .filter((x) => x.isWaste)
-                                    .map((seg, j) => (
+                                {s.comment && (
+                                  <p className="mt-1.5 text-xs text-zinc-500">
+                                    点评：{s.comment}
+                                  </p>
+                                )}
+                                {hasWaste && (
+                                  <ul className="mt-1 space-y-0.5 text-xs text-red-500">
+                                    {wastes.map((seg, j) => (
                                       <li key={j}>
-                                        ⚠ 可省略「{seg.text}」
+                                        ✕ 可省略「{seg.text}」
                                         {seg.reason ? ` — ${seg.reason}` : ""}
                                       </li>
                                     ))}
-                                </ul>
-                              )}
-                            </div>
-                          ))}
+                                  </ul>
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                       )}
                       {a.suggestions.length > 0 && (
                         <div className="mt-2">
-                          <p className="text-xs font-medium text-zinc-600">改进建议</p>
+                          <p className="text-xs font-medium text-amber-700">💡 整体改进建议</p>
                           <ul className="mt-1 list-disc space-y-0.5 pl-4 text-xs text-zinc-600">
                             {a.suggestions.map((s, i2) => (
                               <li key={i2}>{s}</li>
@@ -466,7 +501,7 @@ export default function Home() {
                       )}
                       {a.betterVersion && (
                         <div className="mt-2">
-                          <p className="text-xs font-medium text-emerald-700">更好的说法</p>
+                          <p className="text-xs font-medium text-emerald-700">更好的说法（整体重写）</p>
                           <p className="mt-1 rounded bg-emerald-50 p-2 text-xs text-emerald-900">
                             {a.betterVersion}
                           </p>
