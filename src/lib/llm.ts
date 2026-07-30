@@ -27,22 +27,35 @@ export async function callDeepSeek(
   };
   if (opts?.json) body.response_format = { type: "json_object" };
 
-  const res = await fetch(DEEPSEEK_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${key}`,
-    },
-    body: JSON.stringify(body),
-  });
+  let lastErr: unknown;
+  // 偶发传输/编码损坏会让回复里混入 U+FFFD 替换符，重试一次可规避
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const res = await fetch(DEEPSEEK_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${key}`,
+        },
+        body: JSON.stringify(body),
+      });
 
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`DeepSeek API ${res.status}: ${text.slice(0, 300)}`);
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`DeepSeek API ${res.status}: ${text.slice(0, 300)}`);
+      }
+
+      const data = (await res.json()) as {
+        choices: { message: { content: string } }[];
+      };
+      const content = data.choices[0].message.content;
+      if (content.includes("�") && attempt === 0) continue;
+      return content;
+    } catch (e) {
+      if (e instanceof MissingKeyError) throw e;
+      lastErr = e;
+      if (attempt === 0) continue;
+    }
   }
-
-  const data = (await res.json()) as {
-    choices: { message: { content: string } }[];
-  };
-  return data.choices[0].message.content;
+  throw lastErr instanceof Error ? lastErr : new Error("DeepSeek 调用失败");
 }
