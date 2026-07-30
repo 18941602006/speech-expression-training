@@ -155,15 +155,14 @@ export default function Home() {
     setSavedOk(false);
   }
 
-  // 拖拽调整输入框高度：top 边向上拉、bottom 边向下拉，均改变同一高度值
-  function startResize(e: ReactMouseEvent, edge: "top" | "bottom") {
+  // 拖拽调整输入框高度：输入框位于面板底部、顶部固定向下生长，故仅底部手柄有效（向下拉变大、向上拉变小）
+  function startResize(e: ReactMouseEvent) {
     e.preventDefault();
     const startY = e.clientY;
     const startH = inputH;
     const onMove = (ev: MouseEvent) => {
       const dy = ev.clientY - startY;
-      const delta = edge === "top" ? -dy : dy;
-      setInputH(Math.max(48, Math.min(360, startH + delta)));
+      setInputH(Math.max(48, Math.min(360, startH + dy)));
     };
     const onUp = () => {
       window.removeEventListener("mousemove", onMove);
@@ -406,13 +405,7 @@ export default function Home() {
             {chatBusy && <div className="text-xs text-zinc-400">对方正在输入…</div>}
           </div>
           <div className="mt-3 flex items-end gap-2">
-            <div className="relative flex-1">
-              {/* 顶部拖拽手柄：向上拉高 */}
-              <div
-                onMouseDown={(e) => startResize(e, "top")}
-                title="拖拽调整输入框高度"
-                className="absolute -top-1.5 left-0 right-0 z-10 h-2 cursor-ns-resize rounded-full bg-zinc-200/70 hover:bg-indigo-300"
-              />
+            <div className="group relative flex-1">
               <textarea
                 ref={inputRef}
                 value={chatInput}
@@ -427,12 +420,14 @@ export default function Home() {
                 placeholder="说点什么，或点 🎤 语音输入（Enter 发送，Shift+Enter 换行）"
                 className="w-full resize-none overflow-auto rounded-lg border border-zinc-300 p-2 text-sm outline-none focus:border-indigo-400"
               />
-              {/* 底部拖拽手柄：向下拉高 */}
+              {/* 底部拖拽手柄：向下拖变大、向上拖变小（输入框位于面板底部、向下生长，此手柄符合直觉且不遮挡上方对话） */}
               <div
-                onMouseDown={(e) => startResize(e, "bottom")}
+                onMouseDown={(e) => startResize(e)}
                 title="拖拽调整输入框高度"
-                className="absolute -bottom-1.5 left-0 right-0 z-10 h-2 cursor-ns-resize rounded-full bg-zinc-200/70 hover:bg-indigo-300"
-              />
+                className="absolute -bottom-2 left-0 right-0 z-10 flex h-3 cursor-ns-resize items-center justify-center"
+              >
+                <span className="h-1 w-12 rounded-full bg-zinc-300 transition-colors group-hover:bg-indigo-400" />
+              </div>
             </div>
             <button
               onClick={toggleListen}
