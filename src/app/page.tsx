@@ -21,6 +21,31 @@ const SCENE_DESC: Record<Scene, string> = {
   debate: "立论、反驳、攻防",
 };
 
+// 问题编号的彩色圈数字：①红 ②琥珀 ③蓝 ④紫 ⑤青 ⑥粉 ⑦绿 ⑧橙 ⑨靛 ⑩青蓝
+const CIRCLE_COLORS = [
+  "bg-red-500",
+  "bg-amber-500",
+  "bg-blue-500",
+  "bg-violet-500",
+  "bg-teal-500",
+  "bg-pink-500",
+  "bg-emerald-500",
+  "bg-orange-500",
+  "bg-indigo-500",
+  "bg-cyan-500",
+];
+
+function CircleNum({ n }: { n: number }) {
+  const color = CIRCLE_COLORS[n % CIRCLE_COLORS.length];
+  return (
+    <sup
+      className={`ml-0.5 inline-flex h-4 w-4 items-center justify-center rounded-full ${color} text-[10px] font-bold leading-none text-white align-super`}
+    >
+      {n + 1}
+    </sup>
+  );
+}
+
 export default function Home() {
   const [view, setView] = useState<View>("home");
   const [scene, setScene] = useState<Scene | null>(null);
@@ -390,7 +415,7 @@ export default function Home() {
         {/* 右栏：实时表达分析 */}
         <section className="flex flex-col rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
           <h3 className="mb-2 text-sm font-semibold text-zinc-800">实时表达分析</h3>
-          {/* 颜色图例：一眼区分原句 / 废话 / 建议 */}
+          {/* 颜色图例：一眼区分原句 / 废话 / 建议 / 问题编号 */}
           <div className="mb-3 flex flex-wrap gap-x-4 gap-y-1 text-xs">
             <span className="inline-flex items-center gap-1.5 text-zinc-500">
               <span className="inline-block h-3 w-3 rounded bg-zinc-100 ring-1 ring-zinc-300" />
@@ -403,6 +428,12 @@ export default function Home() {
             <span className="inline-flex items-center gap-1.5 text-emerald-700">
               <span className="inline-block h-3 w-3 rounded bg-emerald-100 ring-1 ring-emerald-300" />
               建议说法（绿底）
+            </span>
+            <span className="inline-flex items-center gap-1.5 text-zinc-500">
+              <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+                1
+              </span>
+              问题编号（彩色圈，对应下方建议）
             </span>
           </div>
           <div
@@ -437,21 +468,34 @@ export default function Home() {
                               .filter((x) => !x.isWaste)
                               .map((x) => x.text)
                               .join("");
+                            // 给每个废话片段分配连续编号（句内从 0 开始），用于原句与建议一一对应
+                            const wasteOrder = new Map<number, number>();
+                            let wi = 0;
+                            s.segments.forEach((seg, j) => {
+                              if (seg.isWaste) {
+                                wasteOrder.set(j, wi);
+                                wi += 1;
+                              }
+                            });
                             return (
                               <div key={si} className="rounded-lg border border-zinc-200 p-2">
-                                {/* 原句：废话用红色删除线，普通词正常显示 */}
+                                {/* 原句：废话红色删除线，右上角彩色圈数字标出问题编号 */}
                                 <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-zinc-400">
                                   原句
                                 </p>
                                 <p className="flex flex-wrap gap-0 text-sm leading-relaxed text-zinc-800">
                                   {s.segments.map((seg, j) =>
                                     seg.isWaste ? (
-                                      <span
-                                        key={j}
-                                        title={seg.reason || "可省略"}
-                                        className="rounded bg-red-100 px-0.5 text-red-600 line-through decoration-red-400 decoration-2"
-                                      >
-                                        {seg.text}
+                                      <span key={j}>
+                                        <span
+                                          title={seg.reason || "可省略"}
+                                          className="rounded bg-red-100 px-0.5 text-red-600 line-through decoration-red-400 decoration-2"
+                                        >
+                                          {seg.text}
+                                        </span>
+                                        {wasteOrder.has(j) && (
+                                          <CircleNum n={wasteOrder.get(j)!} />
+                                        )}
                                       </span>
                                     ) : (
                                       <span key={j}>{seg.text}</span>
@@ -474,12 +518,20 @@ export default function Home() {
                                     点评：{s.comment}
                                   </p>
                                 )}
+                                {/* 逐条建议：彩色圈数字与上方原句一一对应 */}
                                 {hasWaste && (
-                                  <ul className="mt-1 space-y-0.5 text-xs text-red-500">
+                                  <ul className="mt-1.5 space-y-1 text-xs">
                                     {wastes.map((seg, j) => (
-                                      <li key={j}>
-                                        ✕ 可省略「{seg.text}」
-                                        {seg.reason ? ` — ${seg.reason}` : ""}
+                                      <li key={j} className="flex items-start gap-1.5">
+                                        <CircleNum n={j} />
+                                        <span className="text-zinc-700">
+                                          <span className="font-medium text-red-700">
+                                            可省略「{seg.text}」
+                                          </span>
+                                          {seg.reason ? (
+                                            <span className="text-zinc-500"> — {seg.reason}</span>
+                                          ) : null}
+                                        </span>
                                       </li>
                                     ))}
                                   </ul>
