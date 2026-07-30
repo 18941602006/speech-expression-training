@@ -383,13 +383,13 @@ export default function Home() {
 
       <div className="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-2">
         {/* 左栏：陪练对话 */}
-        <section className="flex flex-col rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
+        <section className="flex h-[74vh] flex-col rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
           <h3 className="mb-3 text-sm font-semibold text-zinc-800">
             陪练对话{scene ? ` · ${ROLE_NAME[scene]}` : ""}
           </h3>
           <div
             ref={chatScrollRef}
-            className="h-[58vh] space-y-3 overflow-y-auto rounded-xl bg-zinc-50 p-3"
+            className="min-h-0 flex-1 space-y-3 overflow-y-auto rounded-xl bg-zinc-50 p-3"
           >
             {chat.map((m, i) => (
               <div
@@ -453,7 +453,7 @@ export default function Home() {
         </section>
 
         {/* 右栏：实时表达分析 */}
-        <section className="flex flex-col rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
+        <section className="flex h-[74vh] flex-col rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
           <h3 className="mb-2 text-sm font-semibold text-zinc-800">实时表达分析</h3>
           {/* 颜色图例：一眼区分原句 / 废话 / 建议 / 问题编号 */}
           <div className="mb-3 flex flex-wrap gap-x-4 gap-y-1 text-xs">
@@ -478,7 +478,7 @@ export default function Home() {
           </div>
           <div
             ref={analysisScrollRef}
-            className="h-[58vh] space-y-3 overflow-y-auto rounded-xl bg-zinc-50 p-3"
+            className="min-h-0 flex-1 space-y-3 overflow-y-auto rounded-xl bg-zinc-50 p-3"
           >
             {chat.map((m, i) => {
               if (m.role !== "user") return null;
