@@ -593,8 +593,8 @@ export default function Home() {
                       )}
                       {a.betterVersion && (
                         <div className="mt-2">
-                          <p className="text-xs font-medium text-emerald-700">更好的说法（整体重写）</p>
-                          <p className="mt-1 rounded bg-emerald-50 p-2 text-xs text-emerald-900">
+                          <p className="text-sm font-semibold text-emerald-700">更好的说法（整体重写）</p>
+                          <p className="mt-1 rounded bg-emerald-50 p-2 text-sm leading-relaxed text-emerald-900">
                             {a.betterVersion}
                           </p>
                         </div>
