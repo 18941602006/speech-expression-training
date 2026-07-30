@@ -1,18 +1,18 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   SCENE_LABELS,
-  DIMENSION_LABELS,
-  DIMENSION_ORDER,
   type Scene,
   type Topic,
   type ScoreResult,
 } from "@/lib/types";
+import { ROLE_NAME } from "@/lib/roles";
 import { randomPresetTopic, PRESET_TOPICS } from "@/lib/topics";
 
 type View = "home" | "practice";
+type Msg = { role: "user" | "assistant"; content: string };
 
 const SCENE_DESC: Record<Scene, string> = {
   speech: "上台、汇报、宣讲",
@@ -26,37 +26,58 @@ export default function Home() {
   const [scene, setScene] = useState<Scene | null>(null);
   const [topic, setTopic] = useState<Topic | null>(null);
 
-  const [inputText, setInputText] = useState("");
-  const [listening, setListening] = useState(false);
-  const [loadingTopic, setLoadingTopic] = useState(false);
-  const [loadingScore, setLoadingScore] = useState(false);
-  const [score, setScore] = useState<ScoreResult | null>(null);
-  const [scoreError, setScoreError] = useState<string | null>(null);
-
-  const [chatMode, setChatMode] = useState(false);
-  const [chat, setChat] = useState<{ role: "user" | "assistant"; content: string }[]>([]);
+  const [chat, setChat] = useState<Msg[]>([]);
+  // 与主对话等长的分析数组：下标 i 对应 chat[i]；仅用户消息有分析，其余为 null
+  const [analyses, setAnalyses] = useState<(ScoreResult | null)[]>([null]);
   const [chatInput, setChatInput] = useState("");
+  const [listening, setListening] = useState(false);
   const [chatBusy, setChatBusy] = useState(false);
 
+  const [loadingTopic, setLoadingTopic] = useState(false);
   const [savedOk, setSavedOk] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
   const recognitionRef = useRef<any>(null);
-  const taRef = useRef<HTMLTextAreaElement>(null);
+  const chatScrollRef = useRef<HTMLDivElement>(null);
+  const analysisScrollRef = useRef<HTMLDivElement>(null);
+
+  // 自动滚动到最新：两栏都跟随内容底部
+  useEffect(() => {
+    const el = chatScrollRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [chat]);
+  useEffect(() => {
+    const el = analysisScrollRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [analyses]);
+
+  function greetingFor(s: Scene, t: Topic | null): string {
+    const role = ROLE_NAME[s];
+    return (
+      `我们开始陪练吧。我是今天的${role}。\n` +
+      `题目：「${t?.title ?? "即兴练习"}」\n` +
+      `情境：${t?.scenario ?? "请围绕该场景自由发挥"}\n\n` +
+      `我会陪你对话、并引导你练习表达；每当你发一段话，右侧会实时分析你的表达、标出可省略的废话，并给出更好的说法。\n` +
+      `你可以打字，也可以点 🎤 用语音说。先开口试试？`
+    );
+  }
 
   function pickScene(s: Scene) {
+    const t = randomPresetTopic(s);
     setScene(s);
-    setTopic(randomPresetTopic(s));
+    setTopic(t);
+    setChat([{ role: "assistant", content: greetingFor(s, t) }]);
+    setAnalyses([null]);
+    setChatInput("");
+    setSavedOk(false);
+    setSaveError(null);
+    stopListen();
     setView("practice");
-    resetPractice();
   }
 
   function resetPractice() {
-    setInputText("");
-    setScore(null);
-    setScoreError(null);
-    setChatMode(false);
     setChat([]);
+    setAnalyses([null]);
     setChatInput("");
     setSavedOk(false);
     setSaveError(null);
@@ -81,8 +102,11 @@ export default function Home() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "出题失败");
-      setTopic(data.topic as Topic);
-      resetPractice();
+      const t = data.topic as Topic;
+      setTopic(t);
+      setChat([{ role: "assistant", content: greetingFor(scene, t) }]);
+      setAnalyses([null]);
+      setSavedOk(false);
     } catch (e) {
       alert(e instanceof Error ? e.message : "出题失败");
     } finally {
@@ -92,8 +116,11 @@ export default function Home() {
 
   function newPresetTopic() {
     if (!scene) return;
-    setTopic(randomPresetTopic(scene));
-    resetPractice();
+    const t = randomPresetTopic(scene);
+    setTopic(t);
+    setChat([{ role: "assistant", content: greetingFor(scene, t) }]);
+    setAnalyses([null]);
+    setSavedOk(false);
   }
 
   function toggleListen() {
@@ -101,7 +128,8 @@ export default function Home() {
       stopListen();
       return;
     }
-    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const SR =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SR) {
       alert("当前浏览器不支持语音输入，请使用 Chrome / Edge，或改用打字。");
       return;
@@ -115,7 +143,7 @@ export default function Home() {
       for (let i = 0; i < ev.results.length; i++) {
         text += ev.results[i][0].transcript;
       }
-      setInputText(text);
+      setChatInput(text);
     };
     rec.onerror = () => stopListen();
     rec.onend = () => setListening(false);
@@ -135,79 +163,71 @@ export default function Home() {
     setListening(false);
   }
 
-  async function submitScore() {
-    if (!scene || !topic) return;
-    if (!inputText.trim()) {
-      alert("请先输入或语音录入你的表达。");
-      return;
-    }
-    setLoadingScore(true);
-    setScoreError(null);
-    setScore(null);
-    try {
-      const res = await fetch("/api/ai", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          mode: "score",
-          scene,
-          topic,
-          userInput: inputText,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "评分失败");
-      setScore(data.result as ScoreResult);
-    } catch (e) {
-      setScoreError(e instanceof Error ? e.message : "评分失败");
-    } finally {
-      setLoadingScore(false);
-    }
-  }
-
-  function enterChat() {
-    setChatMode(true);
-    setScore(null);
-    setChat([
-      {
-        role: "assistant",
-        content: `我们开始陪练吧。题目是「${topic?.title}」，情境：${topic?.scenario}。先说说你的想法？`,
-      },
-    ]);
-  }
-
   async function sendChat() {
-    if (!chatInput.trim() || !scene || !topic) return;
-    const next = [...chat, { role: "user" as const, content: chatInput.trim() }];
+    const text = chatInput.trim();
+    if (!text || !scene || !topic || chatBusy) return;
+
+    const userMsg: Msg = { role: "user", content: text };
+    const next = [...chat, userMsg];
+    const nextAnalyses: (ScoreResult | null)[] = [...analyses, null];
+    const userIndex = next.length - 1;
+
     setChat(next);
+    setAnalyses(nextAnalyses);
     setChatInput("");
     setChatBusy(true);
+
     try {
-      const res = await fetch("/api/ai", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          mode: "chat",
-          scene,
-          topic,
-          messages: next,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "陪练失败");
-      setChat([...next, { role: "assistant", content: data.reply as string }]);
-    } catch (e) {
-      setChat([
-        ...next,
-        { role: "assistant", content: e instanceof Error ? e.message : "陪练失败" },
+      const [chatData, scoreData] = await Promise.all([
+        fetch("/api/ai", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mode: "chat", scene, topic, messages: next }),
+        }).then((r) => r.json()),
+        fetch("/api/ai", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mode: "score", scene, topic, userInput: text }),
+        }).then((r) => r.json()),
       ]);
+
+      const reply =
+        (chatData.reply as string) || (chatData.error as string) || "（陪练无响应）";
+      const result = (scoreData.result as ScoreResult | undefined) ?? null;
+
+      setChat([...next, { role: "assistant", content: reply }]);
+      setAnalyses((prev) => {
+        const c = [...prev];
+        c[userIndex] = result;
+        c.push(null); // 对应即将追加的 AI 回复
+        return c;
+      });
+    } catch {
+      setChat([...next, { role: "assistant", content: "（连接出错，请重试）" }]);
+      setAnalyses((prev) => {
+        const c = [...prev];
+        c[userIndex] = null;
+        c.push(null);
+        return c;
+      });
     } finally {
       setChatBusy(false);
     }
   }
 
   async function saveExercise() {
-    if (!scene || !topic || !score) return;
+    const last = [...analyses].reverse().find((a) => a) ?? null;
+    if (!scene || !topic || !last) {
+      setSaveError("还没有可保存的分析，先陪练几轮吧。");
+      return;
+    }
+    const transcript = chat
+      .map((m) => `${m.role === "user" ? "我" : "AI"}：${m.content}`)
+      .join("\n");
+    const userText = chat
+      .filter((m) => m.role === "user")
+      .map((m) => m.content)
+      .join("\n");
     setSaveError(null);
     try {
       const res = await fetch("/api/exercises", {
@@ -217,12 +237,13 @@ export default function Home() {
           scene,
           topicTitle: topic.title,
           topicPrompt: topic.prompt,
-          userInput: inputText,
-          overall: score.overall,
-          dimensions: score.dimensions,
-          suggestions: score.suggestions,
-          betterVersion: score.betterVersion,
-          sentences: score.sentences,
+          userInput: userText,
+          transcript,
+          overall: last.overall,
+          dimensions: last.dimensions,
+          suggestions: last.suggestions,
+          betterVersion: last.betterVersion,
+          sentences: last.sentences,
         }),
       });
       const data = await res.json();
@@ -238,7 +259,9 @@ export default function Home() {
       <main className="mx-auto max-w-3xl px-6 py-16">
         <header className="mb-10 text-center">
           <h1 className="text-3xl font-bold tracking-tight text-zinc-900">言语表达训练</h1>
-          <p className="mt-3 text-zinc-500">选一个场景，开始练习。AI 出题、评分、陪练，还能教你更好的说法。</p>
+          <p className="mt-3 text-zinc-500">
+            选一个场景，进入陪练。AI 扮演角色与你对话、引导你表达，右侧实时分析你的每句话。
+          </p>
           <Link href="/history" className="mt-3 inline-block text-sm text-indigo-600 hover:underline">
             查看练习历史 →
           </Link>
@@ -252,7 +275,9 @@ export default function Home() {
             >
               <div className="text-lg font-semibold text-zinc-900">{SCENE_LABELS[s]}</div>
               <div className="mt-1 text-sm text-zinc-500">{SCENE_DESC[s]}</div>
-              <div className="mt-3 text-xs text-zinc-400">内置 {PRESET_TOPICS[s].length} 道预设题，可 AI 扩展</div>
+              <div className="mt-3 text-xs text-zinc-400">
+                内置 {PRESET_TOPICS[s].length} 道预设题，可 AI 扩展
+              </div>
             </button>
           ))}
         </div>
@@ -261,29 +286,30 @@ export default function Home() {
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-10">
+    <main className="mx-auto max-w-6xl px-4 py-8">
       <button onClick={backHome} className="mb-4 text-sm text-zinc-500 hover:text-zinc-800">
         ← 返回场景选择
       </button>
 
       {topic && (
-        <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
+        <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-zinc-900">{topic.title}</h2>
+            <h2 className="text-lg font-semibold text-zinc-900">{topic.title}</h2>
             <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs text-indigo-700">
               {scene ? SCENE_LABELS[scene] : ""}
+              {scene ? ` · ${ROLE_NAME[scene]}` : ""}
             </span>
           </div>
           <p className="mt-2 text-sm text-zinc-600">{topic.scenario}</p>
-          <p className="mt-2 text-sm text-zinc-800">
+          <p className="mt-1 text-sm text-zinc-800">
             <span className="font-medium">练习要求：</span>
             {topic.prompt}
           </p>
-          <p className="mt-2 text-sm text-zinc-500">
+          <p className="mt-1 text-sm text-zinc-500">
             <span className="font-medium">关注点：</span>
             {topic.focus}
           </p>
-          <div className="mt-4 flex gap-2">
+          <div className="mt-3 flex gap-2">
             <button
               onClick={newPresetTopic}
               className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-50"
@@ -301,169 +327,23 @@ export default function Home() {
         </section>
       )}
 
-      <section className="mt-6 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
-        <label className="block text-sm font-medium text-zinc-700">你的表达</label>
-        <textarea
-          ref={taRef}
-          value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
-          rows={6}
-          placeholder="在这里输入你的表达，或点下方麦克风语音输入…"
-          className="mt-2 w-full resize-y rounded-lg border border-zinc-300 p-3 text-sm text-zinc-800 outline-none focus:border-indigo-400"
-        />
-        <div className="mt-3 flex flex-wrap items-center gap-3">
-          <button
-            onClick={toggleListen}
-            className={`rounded-lg px-3 py-1.5 text-sm text-white ${
-              listening ? "bg-red-500 hover:bg-red-600" : "bg-zinc-700 hover:bg-zinc-800"
-            }`}
+      <div className="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-2">
+        {/* 左栏：陪练对话 */}
+        <section className="flex flex-col rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
+          <h3 className="mb-3 text-sm font-semibold text-zinc-800">
+            陪练对话{scene ? ` · ${ROLE_NAME[scene]}` : ""}
+          </h3>
+          <div
+            ref={chatScrollRef}
+            className="h-[58vh] space-y-3 overflow-y-auto rounded-xl bg-zinc-50 p-3"
           >
-            {listening ? "■ 停止录音" : "🎤 语音输入"}
-          </button>
-          <span className="text-xs text-zinc-400">{inputText.length} 字</span>
-          {!chatMode && (
-            <button
-              onClick={submitScore}
-              disabled={loadingScore}
-              className="ml-auto rounded-lg bg-indigo-600 px-4 py-1.5 text-sm text-white hover:bg-indigo-700 disabled:opacity-50"
-            >
-              {loadingScore ? "评分中…" : "提交评分"}
-            </button>
-          )}
-          {!chatMode && (
-            <button
-              onClick={enterChat}
-              className="rounded-lg border border-indigo-300 px-4 py-1.5 text-sm text-indigo-700 hover:bg-indigo-50"
-            >
-              进入陪练 →
-            </button>
-          )}
-        </div>
-        {scoreError && <p className="mt-3 text-sm text-red-600">{scoreError}</p>}
-      </section>
-
-      {score && !chatMode && (
-        <section className="mt-6 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
-          <div className="flex items-baseline gap-3">
-            <span className="text-4xl font-bold text-indigo-600">{score.overall}</span>
-            <span className="text-sm text-zinc-500">/ 10 综合评分</span>
-          </div>
-          <div className="mt-4 space-y-2">
-            {DIMENSION_ORDER.map((k) => (
-              <div key={k} className="flex items-center gap-3">
-                <span className="w-24 shrink-0 text-sm text-zinc-600">{DIMENSION_LABELS[k]}</span>
-                <div className="h-2 flex-1 overflow-hidden rounded-full bg-zinc-100">
-                  <div
-                    className="h-full rounded-full bg-indigo-500"
-                    style={{ width: `${score.dimensions[k] * 10}%` }}
-                  />
-                </div>
-                <span className="w-6 text-right text-sm text-zinc-700">{score.dimensions[k]}</span>
-              </div>
-            ))}
-          </div>
-          {score.sentences && score.sentences.length > 0 && (
-            <div className="mt-5">
-              <h3 className="text-sm font-semibold text-zinc-800">逐句分析</h3>
-              <p className="mt-1 text-xs text-zinc-400">
-                橙色高亮为可省略的废话 / 填充词，鼠标悬停看原因。
-              </p>
-              <div className="mt-3 space-y-3">
-                {score.sentences.map((s, i) => (
-                  <div
-                    key={i}
-                    className="rounded-lg border border-zinc-100 bg-zinc-50 p-3"
-                  >
-                    <div className="flex gap-2">
-                      <span className="mt-0.5 text-xs font-medium text-zinc-400">
-                        {i + 1}
-                      </span>
-                      <p className="flex-1 text-sm leading-relaxed text-zinc-800">
-                        {s.segments.map((seg, j) =>
-                          seg.isWaste ? (
-                            <span
-                              key={j}
-                              title={seg.reason || "可省略"}
-                              className="rounded bg-orange-100 px-0.5 text-orange-700"
-                            >
-                              {seg.text}
-                            </span>
-                          ) : (
-                            <span key={j}>{seg.text}</span>
-                          ),
-                        )}
-                      </p>
-                    </div>
-                    {s.comment && (
-                      <p className="mt-1 pl-5 text-xs text-zinc-500">点评：{s.comment}</p>
-                    )}
-                    {s.segments.some((seg) => seg.isWaste) && (
-                      <ul className="mt-1 space-y-0.5 pl-5 text-xs text-orange-600">
-                        {s.segments
-                          .filter((seg) => seg.isWaste)
-                          .map((seg, j) => (
-                            <li key={j}>
-                              ⚠ 可省略「{seg.text}」{seg.reason ? ` — ${seg.reason}` : ""}
-                            </li>
-                          ))}
-                      </ul>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-          <div className="mt-5">
-            <h3 className="text-sm font-semibold text-zinc-800">改进建议</h3>
-            <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-zinc-700">
-              {score.suggestions.map((s, i) => (
-                <li key={i}>{s}</li>
-              ))}
-            </ul>
-          </div>
-          {score.betterVersion && (
-            <div className="mt-5">
-              <h3 className="text-sm font-semibold text-zinc-800">更好的示范表达</h3>
-              <p className="mt-2 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-900">
-                {score.betterVersion}
-              </p>
-            </div>
-          )}
-          <div className="mt-5">
-            {savedOk ? (
-              <span className="text-sm text-emerald-600">✓ 已保存到练习历史</span>
-            ) : (
-              <button
-                onClick={saveExercise}
-                className="rounded-lg bg-zinc-900 px-4 py-1.5 text-sm text-white hover:bg-zinc-700"
-              >
-                保存本次练习
-              </button>
-            )}
-            {saveError && <span className="ml-3 text-sm text-red-600">{saveError}</span>}
-          </div>
-        </section>
-      )}
-
-      {chatMode && (
-        <section className="mt-6 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
-          <div className="mb-3 flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-zinc-800">陪练对话</h3>
-            <button
-              onClick={() => setChatMode(false)}
-              className="text-xs text-zinc-400 hover:text-zinc-700"
-            >
-              退出陪练
-            </button>
-          </div>
-          <div className="max-h-80 space-y-3 overflow-y-auto rounded-lg bg-zinc-50 p-3">
             {chat.map((m, i) => (
               <div
                 key={i}
                 className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
               >
                 <div
-                  className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm ${
+                  className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-3 py-2 text-sm ${
                     m.role === "user"
                       ? "bg-indigo-600 text-white"
                       : "bg-white text-zinc-800 shadow-sm"
@@ -475,8 +355,8 @@ export default function Home() {
             ))}
             {chatBusy && <div className="text-xs text-zinc-400">对方正在输入…</div>}
           </div>
-          <div className="mt-3 flex gap-2">
-            <input
+          <div className="mt-3 flex items-end gap-2">
+            <textarea
               value={chatInput}
               onChange={(e) => setChatInput(e.target.value)}
               onKeyDown={(e) => {
@@ -485,19 +365,135 @@ export default function Home() {
                   sendChat();
                 }
               }}
-              placeholder="说点什么…"
-              className="flex-1 rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-indigo-400"
+              rows={2}
+              placeholder="说点什么，或点 🎤 语音输入（Enter 发送，Shift+Enter 换行）"
+              className="flex-1 resize-none rounded-lg border border-zinc-300 p-2 text-sm outline-none focus:border-indigo-400"
             />
             <button
+              onClick={toggleListen}
+              className={`rounded-lg px-3 py-2 text-sm text-white ${
+                listening ? "bg-red-500 hover:bg-red-600" : "bg-zinc-700 hover:bg-zinc-800"
+              }`}
+            >
+              {listening ? "■ 停止" : "🎤 语音"}
+            </button>
+            <button
               onClick={sendChat}
-              disabled={chatBusy}
+              disabled={chatBusy || !chatInput.trim()}
               className="rounded-lg bg-indigo-600 px-4 py-2 text-sm text-white hover:bg-indigo-700 disabled:opacity-50"
             >
               发送
             </button>
           </div>
         </section>
-      )}
+
+        {/* 右栏：实时表达分析 */}
+        <section className="flex flex-col rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
+          <h3 className="mb-1 text-sm font-semibold text-zinc-800">实时表达分析</h3>
+          <p className="mb-3 text-xs text-zinc-400">
+            橙色高亮为可省略的废话 / 填充词，悬停看原因。与左栏对话同步滚动。
+          </p>
+          <div
+            ref={analysisScrollRef}
+            className="h-[58vh] space-y-3 overflow-y-auto rounded-xl bg-zinc-50 p-3"
+          >
+            {chat.map((m, i) => {
+              if (m.role !== "user") return null;
+              const turn = chat.slice(0, i + 1).filter((x) => x.role === "user").length;
+              const a = analyses[i];
+              return (
+                <div
+                  key={i}
+                  className="rounded-xl border border-zinc-200 bg-white p-3"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-zinc-700">
+                      第 {turn} 轮 · 你的表达
+                    </span>
+                    {a && <span className="text-xs text-indigo-600">{a.overall}/10</span>}
+                  </div>
+                  {!a ? (
+                    <p className="mt-2 text-xs text-zinc-400">分析中…</p>
+                  ) : (
+                    <>
+                      {a.sentences.length > 0 && (
+                        <div className="mt-2 space-y-2">
+                          {a.sentences.map((s, si) => (
+                            <div key={si}>
+                              <p className="flex flex-wrap gap-0 text-sm leading-relaxed text-zinc-800">
+                                {s.segments.map((seg, j) =>
+                                  seg.isWaste ? (
+                                    <span
+                                      key={j}
+                                      title={seg.reason || "可省略"}
+                                      className="rounded bg-orange-100 px-0.5 text-orange-700"
+                                    >
+                                      {seg.text}
+                                    </span>
+                                  ) : (
+                                    <span key={j}>{seg.text}</span>
+                                  ),
+                                )}
+                              </p>
+                              {s.comment && (
+                                <p className="mt-0.5 text-xs text-zinc-500">点评：{s.comment}</p>
+                              )}
+                              {s.segments.some((x) => x.isWaste) && (
+                                <ul className="mt-0.5 space-y-0.5 text-xs text-orange-600">
+                                  {s.segments
+                                    .filter((x) => x.isWaste)
+                                    .map((seg, j) => (
+                                      <li key={j}>
+                                        ⚠ 可省略「{seg.text}」
+                                        {seg.reason ? ` — ${seg.reason}` : ""}
+                                      </li>
+                                    ))}
+                                </ul>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {a.suggestions.length > 0 && (
+                        <div className="mt-2">
+                          <p className="text-xs font-medium text-zinc-600">改进建议</p>
+                          <ul className="mt-1 list-disc space-y-0.5 pl-4 text-xs text-zinc-600">
+                            {a.suggestions.map((s, i2) => (
+                              <li key={i2}>{s}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {a.betterVersion && (
+                        <div className="mt-2">
+                          <p className="text-xs font-medium text-emerald-700">更好的说法</p>
+                          <p className="mt-1 rounded bg-emerald-50 p-2 text-xs text-emerald-900">
+                            {a.betterVersion}
+                          </p>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      </div>
+
+      <div className="mt-4 flex items-center gap-3">
+        {savedOk ? (
+          <span className="text-sm text-emerald-600">✓ 已保存到练习历史</span>
+        ) : (
+          <button
+            onClick={saveExercise}
+            className="rounded-lg bg-zinc-900 px-4 py-1.5 text-sm text-white hover:bg-zinc-700"
+          >
+            结束并保存本次练习
+          </button>
+        )}
+        {saveError && <span className="text-sm text-red-600">{saveError}</span>}
+      </div>
     </main>
   );
 }

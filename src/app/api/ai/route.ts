@@ -1,5 +1,6 @@
 import { callDeepSeek, MissingKeyError, type ChatMessage } from "@/lib/llm";
 import { SCENE_LABELS, type Scene, type Topic, type ScoreResult } from "@/lib/types";
+import { ROLE_PROMPT } from "@/lib/roles";
 
 export const runtime = "nodejs";
 
@@ -120,14 +121,17 @@ export async function POST(req: Request) {
       const label = SCENE_LABELS[scene] || scene;
       const topic = (body.topic as Topic) || ({} as Topic);
       const incoming = (body.messages as ChatMessage[]) || [];
+      const rolePrompt = ROLE_PROMPT[scene] || "";
       const system: ChatMessage = {
         role: "system",
         content:
-          `你是「${label}」场景下的陪练伙伴。当前练习题目：${topic.title || ""}；情境：${topic.scenario || ""}；要求：${topic.prompt || ""}。` +
-          "请像一个真实的听众/对手一样，自然地回应用户、推进对话，并适时引导用户练习表达。不要打分，只做陪练。用中文回答。",
+          rolePrompt +
+          `\n\n当前练习题目：${topic.title || ""}；情境：${topic.scenario || ""}；要求：${topic.prompt || ""}。` +
+          "全程用中文。你不是在给用户打分，而是陪用户练习——既要入戏扮演，又要在每一轮用一两句话引导用户" +
+          "「接下来可以试着说 / 注意…」。不要一次性替用户把整段讲完，保持对话的推进与张力。",
       };
       const messages: ChatMessage[] = [system, ...incoming];
-      const reply = await callDeepSeek(messages, { temperature: 0.8 });
+      const reply = await callDeepSeek(messages, { temperature: 0.85 });
       return Response.json({ reply });
     }
 
