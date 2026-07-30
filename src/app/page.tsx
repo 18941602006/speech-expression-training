@@ -320,6 +320,25 @@ export default function Home() {
             查看练习历史 →
           </Link>
         </header>
+
+        {/* 教练系统入口 */}
+        <section className="mb-8 rounded-2xl border border-indigo-200 bg-gradient-to-r from-indigo-50 to-white p-6 shadow-sm">
+          <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
+            <div>
+              <h2 className="text-lg font-semibold text-indigo-900">🎯 教练系统</h2>
+              <p className="mt-1 max-w-xl text-sm text-indigo-700">
+                根据你的历史练习数据，自动分析强弱项、动态调整难度，生成专属训练方案。
+              </p>
+            </div>
+            <Link
+              href="/coach"
+              className="shrink-0 rounded-lg bg-indigo-600 px-4 py-2 text-sm text-white hover:bg-indigo-700"
+            >
+              进入教练系统 →
+            </Link>
+          </div>
+        </section>
+
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {(Object.keys(SCENE_LABELS) as Scene[]).map((s) => (
             <button

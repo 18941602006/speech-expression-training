@@ -75,3 +75,30 @@ export const DIMENSION_ORDER: (keyof ScoreDimensions)[] = [
   "fluency",
   "verbose",
 ];
+
+// ===== 教练系统 =====
+export interface CoachPlanDay {
+  day: string; // 阶段标识，如 "第1阶段"
+  scene: string; // 场景（中文标签）
+  focus: string; // 本次训练重点
+  task: string; // 具体练习任务
+  difficulty: "基础" | "标准" | "挑战" | string; // 难度
+}
+
+export interface CoachPlan {
+  level: string; // 当前水平档位
+  summary: string; // 水平概述
+  focusDimensions: string[]; // 重点提升维度（中文标签）
+  weeklyPlan: CoachPlanDay[];
+  dynamicNote: string; // 难度动态调整说明
+  tips: string[]; // 通用建议
+}
+
+export interface CoachStats {
+  total: number; // 练习次数
+  overallAvg: number; // 平均总分
+  dimensionAvgs: Record<string, number>; // 各维度均值（中文标签 -> 分值）
+  sceneDist: Record<string, number>; // 场景分布（中文标签 -> 次数）
+  topWaste: { word: string; count: number }[]; // 高频废话/填充词
+  trend: string; // 难度动态调整依据（趋势描述）
+}
