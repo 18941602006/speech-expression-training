@@ -10,6 +10,8 @@ import {
 } from "@/lib/types";
 import { ROLE_NAME } from "@/lib/roles";
 import { randomPresetTopic, PRESET_TOPICS } from "@/lib/topics";
+import DailyBlock from "@/components/DailyBlock";
+import { EQ_TIPS, BOOK_QUOTES } from "@/lib/daily";
 
 type View = "home" | "practice";
 type Msg = { role: "user" | "assistant"; content: string };
@@ -359,6 +361,28 @@ export default function Home() {
           <Link href="/issues" className="btn btn-gradient shrink-0">
             查看问题总结 →
           </Link>
+        </section>
+
+        {/* 每日灵感：两个对称正方形小版块（每日按日期自动轮换） */}
+        <section className="mb-6">
+          <div className="mb-3 flex items-center gap-2">
+            <h2 className="t-h3 text-ink">✨ 每日灵感</h2>
+            <span className="t-label text-brand-sec/50">每天自动更新</span>
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <DailyBlock
+              title="每日高情商学习"
+              emoji="🌟"
+              accent="from-accent to-brand"
+              items={EQ_TIPS}
+            />
+            <DailyBlock
+              title="读书名言"
+              emoji="📖"
+              accent="from-brand-2 to-accent"
+              items={BOOK_QUOTES}
+            />
+          </div>
         </section>
 
         {/* 场景选择：显式网格系统（移动 2 列 → 桌面 4 列） */}
