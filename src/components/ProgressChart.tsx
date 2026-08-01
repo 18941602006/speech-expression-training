@@ -29,8 +29,8 @@ export default function ProgressChart({ data }: { data: ExerciseRecord[] }) {
 
   return (
     <svg viewBox={`0 0 ${w} ${h}`} className="w-full" role="img" aria-label="进步曲线">
-      <line x1={pad} y1={h - pad} x2={w - pad} y2={h - pad} stroke="#e4e4e7" />
-      <line x1={pad} y1={pad} x2={pad} y2={h - pad} stroke="#e4e4e7" />
+      <line x1={pad} y1={h - pad} x2={w - pad} y2={h - pad} stroke="#cbd5e1" />
+      <line x1={pad} y1={pad} x2={pad} y2={h - pad} stroke="#cbd5e1" />
       {[0, 5, 10].map((v) => {
         const y = pad + (1 - v / maxScore) * (h - pad * 2);
         return (
@@ -38,14 +38,14 @@ export default function ProgressChart({ data }: { data: ExerciseRecord[] }) {
             <text x={pad - 8} y={y + 4} textAnchor="end" className="fill-zinc-400" fontSize="10">
               {v}
             </text>
-            <line x1={pad} y1={y} x2={w - pad} y2={y} stroke="#f4f4f5" />
+            <line x1={pad} y1={y} x2={w - pad} y2={y} stroke="#e2e8f0" />
           </g>
         );
       })}
-      <path d={path} fill="none" stroke="#4f46e5" strokeWidth={2} />
+      <path d={path} fill="none" stroke="#1856FF" strokeWidth={2} />
       {coords.map((c, i) => (
         <g key={i}>
-          <circle cx={c.x} cy={c.y} r={4} fill="#4f46e5" />
+          <circle cx={c.x} cy={c.y} r={4} fill="#1856FF" />
           <title>{`${new Date(c.p.createdAt).toLocaleString("zh-CN")}：综合 ${c.p.overall}`}</title>
         </g>
       ))}

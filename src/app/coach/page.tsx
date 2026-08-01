@@ -5,9 +5,9 @@ import Link from "next/link";
 import type { CoachPlan, CoachStats, CoachPlanRecord } from "@/lib/types";
 
 const DIFF_STYLE: Record<string, string> = {
-  基础: "bg-emerald-100 text-emerald-700",
-  标准: "bg-amber-100 text-amber-700",
-  挑战: "bg-rose-100 text-rose-700",
+  基础: "bg-emerald-100/70 text-emerald-700",
+  标准: "bg-amber-100/70 text-amber-700",
+  挑战: "bg-rose-100/70 text-rose-700",
 };
 
 const TREND_BADGE: Record<string, string> = {
@@ -91,18 +91,18 @@ export default function CoachPage() {
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-12">
-      <Link href="/" className="text-sm text-zinc-500 hover:text-zinc-800">
+      <Link href="/" className="text-sm text-[#1856FF] hover:underline">
         ← 返回首页
       </Link>
       <header className="mb-6 mt-3">
-        <h1 className="text-3xl font-bold text-zinc-900">🎯 教练系统</h1>
-        <p className="mt-2 text-zinc-500">
+        <h1 className="text-3xl font-bold text-[#141414]">🎯 教练系统</h1>
+        <p className="mt-2 text-zinc-600">
           基于你过往的练习记录，自动分析强弱项并生成个性化训练方案，动态匹配难度。
         </p>
       </header>
 
       {/* 目标输入 */}
-      <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
+      <section className="glass rounded-3xl p-5">
         <label className="text-sm font-semibold text-zinc-800">
           你的训练目标 / 当前诉求（可选）
         </label>
@@ -114,16 +114,16 @@ export default function CoachPage() {
           onChange={(e) => setGoal(e.target.value)}
           rows={3}
           placeholder="例如：我马上要参加一场技术面试，希望表达更专业、少说废话。"
-          className="w-full resize-none rounded-lg border border-zinc-300 p-3 text-sm outline-none focus:border-indigo-400"
+          className="w-full resize-none rounded-xl border border-white/60 bg-white/40 p-3 text-sm text-zinc-800 outline-none focus:border-[#1856FF]"
         />
         <button
           onClick={generate}
           disabled={loading}
-          className="mt-3 rounded-lg bg-indigo-600 px-5 py-2 text-sm text-white hover:bg-indigo-700 disabled:opacity-50"
+          className="mt-3 rounded-lg bg-[#1856FF] px-5 py-2 text-sm text-white transition hover:bg-[#0f3fd6] disabled:opacity-50"
         >
           {loading ? "教练分析中…" : "生成我的专属训练方案"}
         </button>
-        {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+        {error && <p className="mt-2 text-sm text-[#EA2143]">{error}</p>}
       </section>
 
       {/* 概览数据（仅刚生成的方案展示） */}
@@ -144,7 +144,7 @@ export default function CoachPage() {
 
       {/* 数据洞察（仅刚生成的方案展示） */}
       {stats && stats.total > 0 && (
-        <section className="mt-4 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
+        <section className="glass mt-4 rounded-3xl p-5">
           <h3 className="mb-3 text-sm font-semibold text-zinc-800">数据洞察</h3>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
@@ -158,9 +158,9 @@ export default function CoachPage() {
                       <span>{k}</span>
                       <span>{v.toFixed(1)}</span>
                     </div>
-                    <div className="mt-0.5 h-1.5 w-full rounded-full bg-zinc-100">
+                    <div className="mt-0.5 h-1.5 w-full rounded-full bg-white/40">
                       <div
-                        className="h-1.5 rounded-full bg-indigo-500"
+                        className="h-1.5 rounded-full bg-[#1856FF]"
                         style={{ width: `${Math.max(2, v * 10)}%` }}
                       />
                     </div>
@@ -177,7 +177,7 @@ export default function CoachPage() {
                   {stats.topWaste.map((w) => (
                     <span
                       key={w.word}
-                      className="rounded-full bg-red-50 px-2.5 py-1 text-xs text-red-600"
+                      className="rounded-full bg-red-100/70 px-2.5 py-1 text-xs text-[#EA2143]"
                     >
                       「{w.word}」×{w.count}
                     </span>
@@ -216,10 +216,8 @@ export default function CoachPage() {
               <button
                 key={rec.id}
                 onClick={() => viewRecord(rec)}
-                className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left transition ${
-                  activeId === rec.id
-                    ? "border-indigo-300 bg-indigo-50"
-                    : "border-zinc-200 bg-white hover:border-indigo-200"
+                className={`glass-soft flex w-full items-center justify-between rounded-2xl px-4 py-3 text-left transition hover:border-white ${
+                  activeId === rec.id ? "border-[#1856FF] bg-white/60" : ""
                 }`}
               >
                 <div className="min-w-0">
@@ -230,7 +228,7 @@ export default function CoachPage() {
                     {rec.plan.summary}
                   </div>
                 </div>
-                <span className="ml-3 shrink-0 rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs text-zinc-600">
+                <span className="ml-3 shrink-0 rounded-full bg-white/60 px-2.5 py-0.5 text-xs text-zinc-600">
                   {rec.level}
                 </span>
               </button>
@@ -244,8 +242,8 @@ export default function CoachPage() {
 
 function PlanCard({ plan }: { plan: CoachPlan }) {
   return (
-    <section className="mt-6 rounded-2xl border border-indigo-200 bg-white p-6 shadow-sm">
-      <h2 className="text-xl font-bold text-zinc-900">
+    <section className="glass mt-6 rounded-3xl p-6">
+      <h2 className="text-xl font-bold text-[#141414]">
         {plan.level} · 专属训练方案
       </h2>
       <p className="mt-2 text-sm text-zinc-600">{plan.summary}</p>
@@ -256,7 +254,7 @@ function PlanCard({ plan }: { plan: CoachPlan }) {
           {plan.focusDimensions.map((d) => (
             <span
               key={d}
-              className="ml-1.5 inline-block rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs text-indigo-700"
+              className="ml-1.5 inline-block rounded-full bg-white/60 px-2.5 py-0.5 text-xs text-[#1856FF]"
             >
               {d}
             </span>
@@ -268,7 +266,7 @@ function PlanCard({ plan }: { plan: CoachPlan }) {
         {plan.weeklyPlan?.map((d, i) => (
           <div
             key={i}
-            className="flex gap-3 rounded-xl border border-zinc-200 p-3"
+            className="glass-soft flex gap-3 rounded-2xl p-3"
           >
             <div className="w-16 shrink-0 text-sm font-semibold text-zinc-700">
               {d.day}
@@ -280,7 +278,7 @@ function PlanCard({ plan }: { plan: CoachPlan }) {
                 </span>
                 <span
                   className={`rounded px-2 py-0.5 text-xs ${
-                    DIFF_STYLE[d.difficulty] || "bg-zinc-100 text-zinc-600"
+                    DIFF_STYLE[d.difficulty] || "bg-white/50 text-zinc-600"
                   }`}
                 >
                   {d.difficulty}
@@ -294,7 +292,7 @@ function PlanCard({ plan }: { plan: CoachPlan }) {
       </div>
 
       {plan.dynamicNote && (
-        <div className="mt-4 rounded-lg bg-zinc-50 p-3 text-xs text-zinc-600">
+        <div className="mt-4 rounded-xl bg-white/40 p-3 text-xs text-zinc-600">
           <span className="font-medium text-zinc-700">难度动态调整：</span>
           {plan.dynamicNote}
         </div>
@@ -314,7 +312,7 @@ function PlanCard({ plan }: { plan: CoachPlan }) {
       <div className="mt-5">
         <Link
           href="/"
-          className="rounded-lg bg-zinc-900 px-4 py-2 text-sm text-white hover:bg-zinc-700"
+          className="rounded-lg bg-[#3A344E] px-4 py-2 text-sm text-white transition hover:bg-[#2a2638]"
         >
           去练习 →
         </Link>
@@ -325,8 +323,8 @@ function PlanCard({ plan }: { plan: CoachPlan }) {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-zinc-200 bg-white p-3 text-center shadow-sm">
-      <div className="text-lg font-bold text-zinc-900">{value}</div>
+    <div className="glass-soft rounded-2xl p-3 text-center">
+      <div className="text-lg font-bold text-[#141414]">{value}</div>
       <div className="mt-0.5 text-xs text-zinc-500">{label}</div>
     </div>
   );

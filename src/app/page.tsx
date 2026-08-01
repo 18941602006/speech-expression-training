@@ -312,27 +312,27 @@ export default function Home() {
     return (
       <main className="mx-auto max-w-3xl px-6 py-16">
         <header className="mb-10 text-center">
-          <h1 className="text-3xl font-bold tracking-tight text-zinc-900">言语表达训练</h1>
-          <p className="mt-3 text-zinc-500">
+          <h1 className="text-3xl font-bold tracking-tight text-[#141414]">言语表达训练</h1>
+          <p className="mt-3 text-zinc-600">
             选一个场景，进入陪练。AI 扮演角色与你对话、引导你表达，右侧实时分析你的每句话。
           </p>
-          <Link href="/history" className="mt-3 inline-block text-sm text-indigo-600 hover:underline">
+          <Link href="/history" className="mt-3 inline-block text-sm text-[#1856FF] hover:underline">
             查看练习历史 →
           </Link>
         </header>
 
         {/* 教练系统入口 */}
-        <section className="mb-8 rounded-2xl border border-indigo-200 bg-gradient-to-r from-indigo-50 to-white p-6 shadow-sm">
+        <section className="glass mb-8 rounded-3xl p-6">
           <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
             <div>
-              <h2 className="text-lg font-semibold text-indigo-900">🎯 教练系统</h2>
-              <p className="mt-1 max-w-xl text-sm text-indigo-700">
+              <h2 className="text-lg font-semibold text-[#141414]">🎯 教练系统</h2>
+              <p className="mt-1 max-w-xl text-sm text-zinc-600">
                 根据你的历史练习数据，自动分析强弱项、动态调整难度，生成专属训练方案。
               </p>
             </div>
             <Link
               href="/coach"
-              className="shrink-0 rounded-lg bg-indigo-600 px-4 py-2 text-sm text-white hover:bg-indigo-700"
+              className="shrink-0 rounded-lg bg-[#1856FF] px-4 py-2 text-sm text-white transition hover:bg-[#0f3fd6]"
             >
               进入教练系统 →
             </Link>
@@ -344,9 +344,9 @@ export default function Home() {
             <button
               key={s}
               onClick={() => pickScene(s)}
-              className="rounded-2xl border border-zinc-200 bg-white p-6 text-left shadow-sm transition hover:border-indigo-400 hover:shadow-md"
+              className="glass rounded-3xl p-6 text-left transition hover:border-white hover:shadow-lg"
             >
-              <div className="text-lg font-semibold text-zinc-900">{SCENE_LABELS[s]}</div>
+              <div className="text-lg font-semibold text-[#141414]">{SCENE_LABELS[s]}</div>
               <div className="mt-1 text-sm text-zinc-500">{SCENE_DESC[s]}</div>
               <div className="mt-3 text-xs text-zinc-400">
                 内置 {PRESET_TOPICS[s].length} 道预设题，可 AI 扩展
@@ -365,10 +365,10 @@ export default function Home() {
       </button>
 
       {topic && (
-        <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
+        <section className="glass rounded-3xl p-5">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-zinc-900">{topic.title}</h2>
-            <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs text-indigo-700">
+            <h2 className="text-lg font-semibold text-[#141414]">{topic.title}</h2>
+            <span className="rounded-full bg-white/60 px-3 py-1 text-xs text-[#1856FF]">
               {scene ? SCENE_LABELS[scene] : ""}
               {scene ? ` · ${ROLE_NAME[scene]}` : ""}
             </span>
@@ -385,14 +385,14 @@ export default function Home() {
           <div className="mt-3 flex gap-2">
             <button
               onClick={newPresetTopic}
-              className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-50"
+              className="rounded-lg border border-white/60 bg-white/50 px-3 py-1.5 text-sm text-zinc-700 transition hover:bg-white/70"
             >
               换一题（题库）
             </button>
             <button
               onClick={aiTopic}
               disabled={loadingTopic}
-              className="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm text-white hover:bg-indigo-700 disabled:opacity-50"
+              className="rounded-lg bg-[#1856FF] px-3 py-1.5 text-sm text-white transition hover:bg-[#0f3fd6] disabled:opacity-50"
             >
               {loadingTopic ? "出题中…" : "AI 出题"}
             </button>
@@ -402,13 +402,13 @@ export default function Home() {
 
       <div className="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-2">
         {/* 左栏：陪练对话 */}
-        <section className="flex h-[74vh] flex-col rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
+        <section className="glass flex h-[74vh] flex-col rounded-3xl p-4">
           <h3 className="mb-3 text-sm font-semibold text-zinc-800">
             陪练对话{scene ? ` · ${ROLE_NAME[scene]}` : ""}
           </h3>
           <div
             ref={chatScrollRef}
-            className="min-h-0 flex-1 space-y-3 overflow-y-auto rounded-xl bg-zinc-50 p-3"
+            className="min-h-0 flex-1 space-y-3 overflow-y-auto rounded-2xl bg-white/30 p-3"
           >
             {chat.map((m, i) => (
               <div
@@ -418,15 +418,15 @@ export default function Home() {
                 <div
                   className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-3 py-2 text-sm ${
                     m.role === "user"
-                      ? "bg-indigo-600 text-white"
-                      : "bg-white text-zinc-800 shadow-sm"
+                      ? "bg-[#1856FF] text-white"
+                      : "bg-white/70 text-zinc-800"
                   }`}
                 >
                   {m.content}
                 </div>
               </div>
             ))}
-            {chatBusy && <div className="text-xs text-zinc-400">对方正在输入…</div>}
+            {chatBusy && <div className="text-xs text-zinc-500">对方正在输入…</div>}
           </div>
           <div className="mt-3 flex items-end gap-2">
             <div className="group relative flex-1">
@@ -436,7 +436,7 @@ export default function Home() {
                 title="拖拽调整输入框高度（底边固定）"
                 className="absolute -top-2 left-0 right-0 z-10 flex h-3 cursor-ns-resize items-center justify-center"
               >
-                <span className="h-1 w-12 rounded-full bg-zinc-300 transition-colors group-hover:bg-indigo-400" />
+                <span className="h-1 w-12 rounded-full bg-white/70 transition-colors group-hover:bg-[#1856FF]" />
               </div>
               <textarea
                 ref={inputRef}
@@ -450,13 +450,13 @@ export default function Home() {
                 }}
                 style={{ height: inputH }}
                 placeholder="说点什么，或点 🎤 语音输入（Enter 发送，Shift+Enter 换行）"
-                className="w-full resize-none overflow-auto rounded-lg border border-zinc-300 p-2 text-sm outline-none focus:border-indigo-400"
+                className="w-full resize-none overflow-auto rounded-lg border border-white/60 bg-white/40 p-2 text-sm text-zinc-800 outline-none focus:border-[#1856FF]"
               />
             </div>
             <button
               onClick={toggleListen}
-              className={`rounded-lg px-3 py-2 text-sm text-white ${
-                listening ? "bg-red-500 hover:bg-red-600" : "bg-zinc-700 hover:bg-zinc-800"
+              className={`rounded-lg px-3 py-2 text-sm text-white transition ${
+                listening ? "bg-[#EA2143] hover:bg-[#c01a39]" : "bg-[#3A344E] hover:bg-[#2a2638]"
               }`}
             >
               {listening ? "■ 停止" : "🎤 语音"}
@@ -464,7 +464,7 @@ export default function Home() {
             <button
               onClick={sendChat}
               disabled={chatBusy || !chatInput.trim()}
-              className="rounded-lg bg-indigo-600 px-4 py-2 text-sm text-white hover:bg-indigo-700 disabled:opacity-50"
+              className="rounded-lg bg-[#1856FF] px-4 py-2 text-sm text-white transition hover:bg-[#0f3fd6] disabled:opacity-50"
             >
               发送
             </button>
@@ -472,19 +472,19 @@ export default function Home() {
         </section>
 
         {/* 右栏：实时表达分析 */}
-        <section className="flex h-[74vh] flex-col rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
+        <section className="glass flex h-[74vh] flex-col rounded-3xl p-4">
           <h3 className="mb-2 text-sm font-semibold text-zinc-800">实时表达分析</h3>
           {/* 颜色图例：一眼区分原句 / 废话 / 建议 / 问题编号 */}
           <div className="mb-3 flex flex-wrap gap-x-4 gap-y-1 text-xs">
             <span className="inline-flex items-center gap-1.5 text-zinc-500">
-              <span className="inline-block h-3 w-3 rounded bg-zinc-100 ring-1 ring-zinc-300" />
+              <span className="inline-block h-3 w-3 rounded bg-white/60 ring-1 ring-white/70" />
               原句
             </span>
-            <span className="inline-flex items-center gap-1.5 text-red-600">
+            <span className="inline-flex items-center gap-1.5 text-[#EA2143]">
               <span className="inline-block h-3 w-3 rounded bg-red-100 ring-1 ring-red-300" />
               废话（红色删除线）
             </span>
-            <span className="inline-flex items-center gap-1.5 text-emerald-700">
+            <span className="inline-flex items-center gap-1.5 text-[#07CA6B]">
               <span className="inline-block h-3 w-3 rounded bg-emerald-100 ring-1 ring-emerald-300" />
               建议说法（绿底）
             </span>
@@ -497,7 +497,7 @@ export default function Home() {
           </div>
           <div
             ref={analysisScrollRef}
-            className="min-h-0 flex-1 space-y-3 overflow-y-auto rounded-xl bg-zinc-50 p-3"
+            className="min-h-0 flex-1 space-y-3 overflow-y-auto rounded-2xl bg-white/30 p-3"
           >
             {chat.map((m, i) => {
               if (m.role !== "user") return null;
@@ -506,13 +506,13 @@ export default function Home() {
               return (
                 <div
                   key={i}
-                  className="rounded-xl border border-zinc-200 bg-white p-3"
+                  className="glass-soft rounded-2xl p-3"
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-semibold text-zinc-700">
                       第 {turn} 轮 · 你的表达
                     </span>
-                    {a && <span className="text-xs text-indigo-600">{a.overall}/10</span>}
+                    {a && <span className="text-xs text-[#1856FF]">{a.overall}/10</span>}
                   </div>
                   {!a ? (
                     <p className="mt-2 text-xs text-zinc-400">分析中…</p>
@@ -537,7 +537,7 @@ export default function Home() {
                               }
                             });
                             return (
-                              <div key={si} className="rounded-lg border border-zinc-200 p-2">
+                              <div key={si} className="rounded-2xl border border-white/50 bg-white/40 p-2">
                                 {/* 原句：废话红色删除线，右上角彩色圈数字标出问题编号 */}
                                 <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-zinc-400">
                                   原句
@@ -548,7 +548,7 @@ export default function Home() {
                                       <span key={j}>
                                         <span
                                           title={seg.reason || "可省略"}
-                                          className="rounded bg-red-100 px-0.5 text-red-600 line-through decoration-red-400 decoration-2"
+                                          className="rounded bg-red-100 px-0.5 text-[#EA2143] line-through decoration-red-400 decoration-2"
                                         >
                                           {seg.text}
                                         </span>
@@ -563,8 +563,8 @@ export default function Home() {
                                 </p>
                                 {/* 建议说法：去掉废话后的干净版本，绿底对照 */}
                                 {hasWaste && (
-                                  <div className="mt-2 rounded-md bg-emerald-50 p-2">
-                                    <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-wide text-emerald-600">
+                                  <div className="mt-2 rounded-xl bg-emerald-100/70 p-2">
+                                    <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
                                       建议说法（去掉废话）
                                     </p>
                                     <p className="text-sm leading-relaxed text-emerald-900">
@@ -584,7 +584,7 @@ export default function Home() {
                                       <li key={j} className="flex items-start gap-1.5">
                                         <CircleNum n={j} />
                                         <span className="text-zinc-700">
-                                          <span className="font-medium text-red-700">
+                                          <span className="font-medium text-[#EA2143]">
                                             可省略「{seg.text}」
                                           </span>
                                           {seg.reason ? (
@@ -613,7 +613,7 @@ export default function Home() {
                       {a.betterVersion && (
                         <div className="mt-2">
                           <p className="text-sm font-semibold text-emerald-700">更好的说法（整体重写）</p>
-                          <p className="mt-1 rounded bg-emerald-50 p-2 text-sm leading-relaxed text-emerald-900">
+                          <p className="mt-1 rounded-xl bg-emerald-100/70 p-2 text-sm leading-relaxed text-emerald-900">
                             {a.betterVersion}
                           </p>
                         </div>
@@ -629,16 +629,16 @@ export default function Home() {
 
       <div className="mt-4 flex items-center gap-3">
         {savedOk ? (
-          <span className="text-sm text-emerald-600">✓ 已保存到练习历史</span>
+          <span className="text-sm text-[#07CA6B]">✓ 已保存到练习历史</span>
         ) : (
           <button
             onClick={saveExercise}
-            className="rounded-lg bg-zinc-900 px-4 py-1.5 text-sm text-white hover:bg-zinc-700"
+            className="rounded-lg bg-[#3A344E] px-4 py-1.5 text-sm text-white transition hover:bg-[#2a2638]"
           >
             结束并保存本次练习
           </button>
         )}
-        {saveError && <span className="text-sm text-red-600">{saveError}</span>}
+        {saveError && <span className="text-sm text-[#EA2143]">{saveError}</span>}
       </div>
     </main>
   );
