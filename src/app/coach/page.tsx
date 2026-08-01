@@ -91,11 +91,8 @@ export default function CoachPage() {
     : "";
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-12">
-      <Link href="/" className="text-sm font-medium text-brand hover:underline">
-        ← 返回首页
-      </Link>
-      <header className="mb-6 mt-3">
+    <main className="mx-auto max-w-5xl px-6 py-10 lg:px-10">
+      <header className="mb-6">
         <h1 className="t-h1 text-ink">🎯 教练系统</h1>
         <p className="t-body mt-3 text-brand-sec/80">
           基于你过往的练习记录，自动分析强弱项并生成个性化训练方案，动态匹配难度。

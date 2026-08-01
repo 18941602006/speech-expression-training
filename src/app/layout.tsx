@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import AppShell from "@/components/AppShell";
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -38,7 +39,7 @@ export default function RootLayout({
           <div className="absolute -right-10 bottom-10 h-72 w-72 rounded-full bg-[#EA2143]/20 blur-3xl" />
           <div className="absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#3A344E]/10 blur-3xl" />
         </div>
-        {children}
+        <AppShell>{children}</AppShell>
       </body>
     </html>
   );

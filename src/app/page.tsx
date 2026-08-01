@@ -310,15 +310,12 @@ export default function Home() {
 
   if (view === "home") {
     return (
-      <main className="mx-auto max-w-3xl px-6 py-16">
-        <header className="mb-8 text-center">
+      <main className="mx-auto max-w-6xl px-6 py-10 lg:px-10">
+        <header className="mb-8">
           <h1 className="t-h1 text-ink">言语表达训练</h1>
-          <p className="t-body mt-4 text-brand-sec/80">
+          <p className="t-body mt-3 max-w-2xl text-brand-sec/80">
             选一个场景，进入陪练。AI 扮演角色与你对话、引导你表达，右侧实时分析你的每句话。
           </p>
-          <Link href="/history" className="mt-3 inline-block text-sm font-medium text-brand hover:underline">
-            查看练习历史 →
-          </Link>
         </header>
 
         {/* 教练系统入口（bento 通栏卡片） */}
@@ -339,8 +336,8 @@ export default function Home() {
           </div>
         </section>
 
-        {/* 场景选择：显式网格系统（移动 1 列 → 平板 2 列 → 桌面 4 列） */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {/* 场景选择：显式网格系统（移动 2 列 → 桌面 4 列） */}
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {(Object.keys(SCENE_LABELS) as Scene[]).map((s) => (
             <button
               key={s}

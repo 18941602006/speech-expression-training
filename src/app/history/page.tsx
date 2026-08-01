@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { SCENE_LABELS, type ExerciseRecord } from "@/lib/types";
 import ProgressChart from "@/components/ProgressChart";
 
@@ -22,12 +21,9 @@ export default function HistoryPage() {
   }, []);
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
-      <div className="mb-6 flex items-center justify-between">
+    <main className="mx-auto max-w-5xl px-6 py-10 lg:px-10">
+      <div className="mb-6">
         <h1 className="t-h1 text-ink">练习历史</h1>
-        <Link href="/" className="text-sm font-medium text-brand hover:underline">
-          ← 返回训练
-        </Link>
       </div>
 
       <section className="glass p-6">
