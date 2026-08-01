@@ -94,7 +94,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-brand to-brand-2 text-sm font-bold text-white shadow-[0_6px_16px_rgba(124,92,255,0.4)]">
             语
           </span>
-          <span className="t-h3 text-ink">言语表达训练</span>
+          <span className="t-h3 text-ink">言语表达训练师</span>
         </div>
 
         <nav className="mt-9 flex flex-col gap-1">
@@ -135,7 +135,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <div className="flex min-w-0 flex-1 flex-col">
         {/* 移动端：顶部导航条 */}
         <header className="flex items-center justify-between border-b border-white/40 bg-white/40 px-4 py-3 backdrop-blur-xl lg:hidden">
-          <span className="t-h3 text-ink">言语表达训练</span>
+          <span className="t-h3 text-ink">言语表达训练师</span>
           <nav className="flex gap-4 text-sm">
             {NAV.map((n) => {
               const active =
