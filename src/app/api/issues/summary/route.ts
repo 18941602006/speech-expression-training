@@ -1,5 +1,5 @@
 import { listAllIssues } from "@/lib/db";
-import { callDeepSeek, type ChatMessage } from "@/lib/llm";
+import { callLLM, type ChatMessage } from "@/lib/llm";
 import {
   aggregateIssues,
   applyClusters,
@@ -60,7 +60,7 @@ export async function GET(req: Request) {
           content: JSON.stringify(payload),
         },
       ];
-      const raw = await callDeepSeek(messages, { json: true, temperature: 0.3 });
+      const raw = await callLLM(messages, { json: true, temperature: 0.3 });
       const parsed = safeParse<{
         clusters?: { label: string; memberIds: number[] }[];
         brief?: string;

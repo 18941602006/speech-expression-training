@@ -1,4 +1,4 @@
-import { callDeepSeek, MissingKeyError, type ChatMessage } from "@/lib/llm";
+import { callLLM, MissingKeyError, type ChatMessage } from "@/lib/llm";
 import { SCENE_LABELS, type Scene, type Topic, type ScoreResult } from "@/lib/types";
 import { ROLE_PROMPT } from "@/lib/roles";
 
@@ -46,7 +46,7 @@ export async function POST(req: Request) {
           content: `场景：${label}。请生成一个有挑战性、贴近真实生活的练习题目。`,
         },
       ];
-      const raw = await callDeepSeek(messages, { json: true, temperature: 0.9 });
+      const raw = await callLLM(messages, { json: true, temperature: 0.9 });
       const topic = safeParse<Topic>(raw, {
         title: "即兴练习",
         scenario: "请围绕该场景自由发挥。",
@@ -90,7 +90,7 @@ export async function POST(req: Request) {
             `场景：${label}\n题目：${topic.title || ""}\n情境：${topic.scenario || ""}\n练习要求：${topic.prompt || ""}\n\n用户的表达：\n${userInput}`,
         },
       ];
-      const raw = await callDeepSeek(messages, { json: true, temperature: 0.5 });
+      const raw = await callLLM(messages, { json: true, temperature: 0.5 });
       const result = safeParse<ScoreResult>(raw, {
         overall: 5,
         dimensions: {
@@ -132,7 +132,7 @@ export async function POST(req: Request) {
           "「接下来可以试着说 / 注意…」。不要一次性替用户把整段讲完，保持对话的推进与张力。",
       };
       const messages: ChatMessage[] = [system, ...incoming];
-      const reply = await callDeepSeek(messages, { temperature: 0.85 });
+      const reply = await callLLM(messages, { temperature: 0.85 });
       return Response.json({ reply });
     }
 
@@ -140,7 +140,7 @@ export async function POST(req: Request) {
   } catch (e) {
     if (e instanceof MissingKeyError) {
       return Response.json(
-        { error: "缺少 DEEPSEEK_API_KEY，请在 .env.local 中配置后重启服务。" },
+        { error: "未配置 AI：请在「AI 设置」中填入你的 API 配置，或在 .env.local 设置 DEEPSEEK_API_KEY 后重启服务。" },
         { status: 500 },
       );
     }

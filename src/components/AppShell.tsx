@@ -9,6 +9,7 @@ const NAV = [
   { href: "/coach", label: "教练系统", mark: "◎" },
   { href: "/issues", label: "常见问题", mark: "▦" },
   { href: "/history", label: "练习历史", mark: "▤" },
+  { href: "/apisettings", label: "AI 设置", mark: "⚙" },
 ];
 
 type Stats = { total: number; streak: number; lastOverall: number | null };

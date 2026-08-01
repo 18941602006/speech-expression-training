@@ -1,4 +1,4 @@
-import { callDeepSeek, MissingKeyError, type ChatMessage } from "@/lib/llm";
+import { callLLM, MissingKeyError, type ChatMessage } from "@/lib/llm";
 import { listExercises, saveCoachPlan, listCoachPlans } from "@/lib/db";
 import {
   SCENE_LABELS,
@@ -215,7 +215,7 @@ export async function POST(req: Request) {
       },
     ];
 
-    const raw = await callDeepSeek(messages, { json: true, temperature: 0.7 });
+    const raw = await callLLM(messages, { json: true, temperature: 0.7 });
     const plan = safeParse<CoachPlan>(raw, fallbackPlan(stats, goal));
     if (!Array.isArray(plan.weeklyPlan) || plan.weeklyPlan.length === 0) {
       plan.weeklyPlan = fallbackPlan(stats, goal).weeklyPlan;
