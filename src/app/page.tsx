@@ -21,6 +21,14 @@ const SCENE_DESC: Record<Scene, string> = {
   debate: "立论、反驳、攻防",
 };
 
+// 场景图标（活力点缀）
+const SCENE_ICON: Record<Scene, string> = {
+  speech: "🎤",
+  communication: "💬",
+  interview: "🧑‍💼",
+  debate: "⚖️",
+};
+
 // 输入框高度上下限（px）：底边固定、顶边可拖，限制在一个合理范围内
 const INPUT_MIN = 56;
 const INPUT_MAX = 260;
@@ -311,39 +319,60 @@ export default function Home() {
   if (view === "home") {
     return (
       <main className="mx-auto max-w-6xl px-6 py-10 lg:px-10">
-        <header className="mb-8">
-          <h1 className="t-h1 text-ink">言语表达训练</h1>
-          <p className="t-body mt-3 max-w-2xl text-brand-sec/80">
-            选一个场景，进入陪练。AI 扮演角色与你对话、引导你表达，右侧实时分析你的每句话。
+        {/* 活力头图 */}
+        <header className="hero-grad anim-rise mb-6 rounded-[22px] p-8 shadow-[0_18px_50px_rgba(124,92,255,0.28)]">
+          <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+            用 AI 陪你，练出更有力的表达
+          </h1>
+          <p className="mt-3 max-w-2xl text-sm text-white/85 sm:text-base">
+            选一个场景进入陪练。AI 扮演角色与你对话、引导表达，右侧实时分析你的每句话，标出废话并给出更好的说法。
           </p>
         </header>
 
-        {/* 教练系统入口（bento 通栏卡片） */}
-        <section className="glass mb-6 p-6">
-          <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-            <div>
-              <h2 className="t-h3 text-ink">🎯 教练系统</h2>
-              <p className="t-body mt-2 max-w-xl text-brand-sec/80">
-                根据你的历史练习数据，自动分析强弱项、动态调整难度，生成专属训练方案。
-              </p>
-            </div>
-            <Link
-              href="/coach"
-              className="btn btn-primary shrink-0"
-            >
-              进入教练系统 →
-            </Link>
+        {/* 教练系统入口（通栏卡片） */}
+        <section
+          className="glass card-hover anim-rise mb-6 flex flex-col items-start justify-between gap-4 p-6 sm:flex-row sm:items-center"
+          style={{ animationDelay: "60ms" }}
+        >
+          <div>
+            <h2 className="t-h3 text-ink">🎯 教练系统</h2>
+            <p className="t-body mt-2 max-w-xl text-brand-sec/80">
+              根据你的历史练习数据，自动分析强弱项、动态调整难度，生成专属训练方案。
+            </p>
           </div>
+          <Link href="/coach" className="btn btn-gradient shrink-0">
+            进入教练系统 →
+          </Link>
+        </section>
+
+        {/* 常见问题总结入口（通栏卡片） */}
+        <section
+          className="glass card-hover anim-rise mb-6 flex flex-col items-start justify-between gap-4 p-6 sm:flex-row sm:items-center"
+          style={{ animationDelay: "120ms" }}
+        >
+          <div>
+            <h2 className="t-h3 text-ink">📊 常见问题总结</h2>
+            <p className="t-body mt-2 max-w-xl text-brand-sec/80">
+              自动归集你反复出现的表达问题，按日 / 周 / 月生成高频问题 Top 榜、趋势变化与改进建议。
+            </p>
+          </div>
+          <Link href="/issues" className="btn btn-gradient shrink-0">
+            查看问题总结 →
+          </Link>
         </section>
 
         {/* 场景选择：显式网格系统（移动 2 列 → 桌面 4 列） */}
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          {(Object.keys(SCENE_LABELS) as Scene[]).map((s) => (
+          {(Object.keys(SCENE_LABELS) as Scene[]).map((s, i) => (
             <button
               key={s}
               onClick={() => pickScene(s)}
-              className="glass p-6 text-left outline-none transition hover:border-white hover:shadow-lg focus-visible:ring-2 focus-visible:ring-brand/60"
+              className="glass card-hover anim-rise p-6 text-left outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
+              style={{ animationDelay: `${120 + i * 60}ms` }}
             >
+              <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-brand to-brand-2 text-xl shadow-[0_6px_16px_rgba(124,92,255,0.35)]">
+                {SCENE_ICON[s]}
+              </div>
               <div className="t-h3 text-ink">{SCENE_LABELS[s]}</div>
               <div className="t-body mt-2 text-sm text-brand-sec/80">{SCENE_DESC[s]}</div>
               <div className="t-label mt-4 text-brand-sec/50">
@@ -363,10 +392,10 @@ export default function Home() {
       </button>
 
       {topic && (
-        <section className="glass p-6">
+        <section className="glass anim-rise p-6">
           <div className="flex items-center justify-between gap-4">
             <h2 className="t-h3 text-ink">{topic.title}</h2>
-            <span className="chip bg-white/60 text-brand">
+            <span className="chip bg-gradient-to-r from-brand to-brand-2 text-white">
               {scene ? SCENE_LABELS[scene] : ""}
               {scene ? ` · ${ROLE_NAME[scene]}` : ""}
             </span>
@@ -400,13 +429,13 @@ export default function Home() {
 
       <div className="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-2">
         {/* 左栏：陪练对话 */}
-        <section className="glass flex h-[74vh] flex-col p-4">
-          <h3 className="t-label mb-3 text-brand-sec/70">
+        <section className="glass anim-rise flex h-[74vh] flex-col p-4" style={{ animationDelay: "40ms" }}>
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-brand to-brand-2 px-3 py-1 text-xs font-semibold text-white shadow-[0_4px_12px_rgba(124,92,255,0.3)]">
             陪练对话{scene ? ` · ${ROLE_NAME[scene]}` : ""}
-          </h3>
+          </div>
           <div
             ref={chatScrollRef}
-            className="min-h-0 flex-1 space-y-3 overflow-y-auto rounded-lg bg-white/30 p-3"
+            className="min-h-0 flex-1 space-y-3 overflow-y-auto rounded-lg bg-white/40 p-3"
           >
             {chat.map((m, i) => (
               <div
@@ -416,15 +445,24 @@ export default function Home() {
                 <div
                   className={`max-w-[85%] whitespace-pre-wrap rounded-lg px-3 py-2 text-sm ${
                     m.role === "user"
-                      ? "bg-brand text-white"
-                      : "bg-white/70 text-ink"
+                      ? "bg-gradient-to-br from-brand to-brand-2 text-white shadow-[0_4px_12px_rgba(124,92,255,0.25)]"
+                      : "bg-white/80 text-ink"
                   }`}
                 >
                   {m.content}
                 </div>
               </div>
             ))}
-            {chatBusy && <div className="text-xs text-brand-sec/60">对方正在输入…</div>}
+            {chatBusy && (
+              <div className="flex items-center gap-2 text-xs text-brand-sec/70">
+                <span className="typing">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </span>
+                对方正在输入…
+              </div>
+            )}
           </div>
           <div className="mt-3 flex items-end gap-2">
             <div className="group relative flex-1">
@@ -453,7 +491,7 @@ export default function Home() {
             </div>
             <button
               onClick={toggleListen}
-              className={`btn ${listening ? "btn-danger" : "btn-secondary"}`}
+              className={`btn relative ${listening ? "btn-danger pulse-ring" : "btn-secondary"}`}
             >
               {listening ? "■ 停止" : "🎤 语音"}
             </button>
@@ -468,8 +506,10 @@ export default function Home() {
         </section>
 
         {/* 右栏：实时表达分析 */}
-        <section className="glass flex h-[74vh] flex-col p-4">
-          <h3 className="t-label mb-3 text-brand-sec/70">实时表达分析</h3>
+        <section className="glass anim-rise flex h-[74vh] flex-col p-4" style={{ animationDelay: "80ms" }}>
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-brand-2 to-accent px-3 py-1 text-xs font-semibold text-white shadow-[0_4px_12px_rgba(255,94,156,0.3)]">
+            实时表达分析
+          </div>
           {/* 颜色图例：一眼区分原句 / 废话 / 建议 / 问题编号 */}
           <div className="mb-3 flex flex-wrap gap-x-4 gap-y-2 text-xs">
             <span className="inline-flex items-center gap-1.5 text-brand-sec/70">
@@ -502,7 +542,7 @@ export default function Home() {
               return (
                 <div
                   key={i}
-                  className="glass-soft p-3"
+                  className="glass-soft anim-pop p-3"
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-semibold text-brand-sec">

@@ -1,4 +1,5 @@
-import { initDb, listExercises, saveExercise, type NewExercise } from "@/lib/db";
+import { initDb, listExercises, saveExercise, saveIssueRecords, type NewExercise } from "@/lib/db";
+import { extractIssues } from "@/lib/issues";
 import type { ScoreDimensions, Scene, SentenceAnalysis } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -45,6 +46,19 @@ export async function POST(req: Request) {
   try {
     await initDb();
     const id = await saveExercise(rec);
+    // 自动归集：把本次练习暴露出的表达问题写入 issue_records，供「常见问题总结」使用
+    try {
+      const issues = extractIssues({
+        scene: rec.scene,
+        dimensions: rec.dimensions,
+        sentences: rec.sentences,
+        suggestions: rec.suggestions,
+        createdAt: new Date().toISOString(),
+      });
+      await saveIssueRecords(id, issues);
+    } catch {
+      // 问题归集失败不影响练习本身的保存
+    }
     return Response.json({ id, ok: true });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "保存失败";

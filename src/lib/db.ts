@@ -6,6 +6,8 @@ import type {
   SentenceAnalysis,
   CoachPlan,
   CoachPlanRecord,
+  IssueRecordRow,
+  RawIssue,
 } from "./types";
 
 let client: Client | null = null;
@@ -54,6 +56,19 @@ export async function initDb(): Promise<void> {
       level TEXT NOT NULL,
       summary TEXT NOT NULL,
       plan TEXT NOT NULL
+    );
+  `);
+  // 常见问题原始记录：每次练习自动归集用户反复出现的表达问题
+  await c.execute(`
+    CREATE TABLE IF NOT EXISTS issue_records (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      exercise_id INTEGER NOT NULL,
+      scene TEXT NOT NULL,
+      category TEXT NOT NULL,
+      text TEXT NOT NULL,
+      example TEXT NOT NULL DEFAULT '',
+      source TEXT NOT NULL,
+      created_at TEXT NOT NULL
     );
   `);
   initialized = true;
@@ -164,5 +179,51 @@ function mapCoachRow(r: Record<string, unknown>): CoachPlanRecord {
     level: String(r.level),
     summary: String(r.summary),
     plan: JSON.parse(String(r.plan)) as CoachPlan,
+  };
+}
+
+// ===== 常见问题记录 =====
+export async function saveIssueRecords(
+  exerciseId: number,
+  issues: RawIssue[],
+): Promise<void> {
+  if (!issues.length) return;
+  await initDb();
+  const c = getClient();
+  for (const it of issues) {
+    await c.execute({
+      sql: `INSERT INTO issue_records (exercise_id, scene, category, text, example, source, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      args: [
+        exerciseId,
+        it.scene,
+        it.category,
+        it.text,
+        it.example,
+        it.source,
+        it.createdAt,
+      ],
+    });
+  }
+}
+
+export async function listAllIssues(): Promise<IssueRecordRow[]> {
+  await initDb();
+  const c = getClient();
+  const rows = await c.execute(
+    `SELECT * FROM issue_records ORDER BY created_at ASC`,
+  );
+  return rows.rows.map((r) => mapIssueRow(r as Record<string, unknown>));
+}
+
+function mapIssueRow(r: Record<string, unknown>): IssueRecordRow {
+  return {
+    id: Number(r.id),
+    exerciseId: Number(r.exercise_id),
+    scene: String(r.scene),
+    category: String(r.category),
+    text: String(r.text),
+    example: String(r.example ?? ""),
+    source: String(r.source),
+    createdAt: String(r.created_at),
   };
 }

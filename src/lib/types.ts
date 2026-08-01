@@ -112,3 +112,36 @@ export interface CoachPlanRecord {
   summary: string; // 概述
   plan: CoachPlan; // 完整方案
 }
+
+// ===== 常见问题总结 =====
+export const ISSUE_CATEGORIES = [
+  "口头禅/废话",
+  "结构逻辑",
+  "用词精准",
+  "流畅节奏",
+  "场景贴合",
+  "其他",
+] as const;
+export type IssueCategory = (typeof ISSUE_CATEGORIES)[number];
+
+// 单条问题原始记录（保存时由 ScoreResult 提取，不含 id / exerciseId）
+export interface RawIssue {
+  scene: string;
+  category: string;
+  text: string;
+  example: string;
+  source: string;
+  createdAt: string;
+}
+
+// 落库后的问题记录
+export interface IssueRecordRow {
+  id: number;
+  exerciseId: number;
+  scene: string;
+  category: string;
+  text: string;
+  example: string;
+  source: string;
+  createdAt: string;
+}
