@@ -82,9 +82,19 @@ export const PRESET_TOPICS: Record<Scene, Topic[]> = {
       focus: "反应快、不缠斗、推进",
     },
   ],
+  // 自定义方向：无固定题库，由用户在首页自行设定场景内容
+  custom: [],
+};
+
+const FALLBACK_TOPIC: Topic = {
+  title: "即兴练习",
+  scenario: "请围绕该场景自由发挥。",
+  prompt: "用 1-2 分钟进行一段表达练习。",
+  focus: "结构与逻辑、用词、场景贴合",
 };
 
 export function randomPresetTopic(scene: Scene): Topic {
   const list = PRESET_TOPICS[scene];
+  if (!list || list.length === 0) return FALLBACK_TOPIC;
   return list[Math.floor(Math.random() * list.length)];
 }

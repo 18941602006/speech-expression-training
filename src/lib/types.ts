@@ -1,4 +1,4 @@
-export type Scene = "speech" | "communication" | "interview" | "debate";
+export type Scene = "speech" | "communication" | "interview" | "debate" | "custom";
 
 export interface Topic {
   title: string;
@@ -56,6 +56,7 @@ export const SCENE_LABELS: Record<Scene, string> = {
   communication: "日常沟通",
   interview: "面试职场",
   debate: "辩论逻辑",
+  custom: "自定义方向",
 };
 
 export const DIMENSION_LABELS: Record<keyof ScoreDimensions, string> = {

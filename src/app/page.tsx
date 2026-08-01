@@ -21,6 +21,7 @@ const SCENE_DESC: Record<Scene, string> = {
   communication: "聊天、表达、化解冲突",
   interview: "面试、向上沟通、谈判",
   debate: "立论、反驳、攻防",
+  custom: "自由设定你的练习场景",
 };
 
 // 场景图标（活力点缀）
@@ -29,6 +30,7 @@ const SCENE_ICON: Record<Scene, string> = {
   communication: "💬",
   interview: "🧑‍💼",
   debate: "⚖️",
+  custom: "✏️",
 };
 
 // 输入框高度上下限（px）：底边固定、顶边可拖，限制在一个合理范围内
@@ -82,6 +84,11 @@ export default function Home() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [inputH, setInputH] = useState(72);
 
+  // 自定义方向：表单开关与用户输入
+  const [customOpen, setCustomOpen] = useState(false);
+  const [customName, setCustomName] = useState("");
+  const [customDesc, setCustomDesc] = useState("");
+
   // 自动滚动到最新：两栏都跟随内容底部
   useEffect(() => {
     const el = chatScrollRef.current;
@@ -128,6 +135,35 @@ export default function Home() {
     setSavedOk(false);
     setSaveError(null);
     stopListen();
+  }
+
+  // 打开自定义方向表单（清空输入）
+  function openCustom() {
+    setCustomName("");
+    setCustomDesc("");
+    setCustomOpen(true);
+  }
+
+  // 用用户设定的方向名称 + 场景描述，构建自定义题目并进入陪练
+  function startCustom() {
+    const name = customName.trim();
+    const desc = customDesc.trim();
+    const customTopic: Topic = {
+      title: name || "自定义练习",
+      scenario: desc || "请围绕你设定的方向自由发挥。",
+      prompt: `围绕「${name || "你设定的方向"}」展开一段表达，注意逻辑清晰、减少废话、贴合场景。`,
+      focus: "把你描述的场景讲清楚，并保持自然的表达节奏。",
+    };
+    setScene("custom");
+    setTopic(customTopic);
+    setChat([{ role: "assistant", content: greetingFor("custom", customTopic) }]);
+    setAnalyses([null]);
+    setChatInput("");
+    setSavedOk(false);
+    setSaveError(null);
+    stopListen();
+    setCustomOpen(false);
+    setView("practice");
   }
 
   function backHome() {
@@ -385,13 +421,13 @@ export default function Home() {
           </div>
         </section>
 
-        {/* 场景选择：显式网格系统（移动 2 列 → 桌面 4 列） */}
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        {/* 场景选择：显式网格系统（移动 2 列 → 桌面 5 列，含自定义方向） */}
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
           {(Object.keys(SCENE_LABELS) as Scene[]).map((s, i) => (
             <button
               key={s}
-              onClick={() => pickScene(s)}
-              className="glass card-hover anim-rise p-6 text-left outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
+              onClick={() => (s === "custom" ? openCustom() : pickScene(s))}
+              className="glass card-hover anim-rise p-5 text-left outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
               style={{ animationDelay: `${120 + i * 60}ms` }}
             >
               <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-brand to-brand-2 text-xl shadow-[0_6px_16px_rgba(124,92,255,0.35)]">
@@ -400,11 +436,51 @@ export default function Home() {
               <div className="t-h3 text-ink">{SCENE_LABELS[s]}</div>
               <div className="t-body mt-2 text-sm text-brand-sec/80">{SCENE_DESC[s]}</div>
               <div className="t-label mt-4 text-brand-sec/50">
-                内置 {PRESET_TOPICS[s].length} 题 · 可 AI 扩展
+                {s === "custom" ? "✏️ 自由设定场景" : `内置 ${PRESET_TOPICS[s].length} 题 · 可 AI 扩展`}
               </div>
             </button>
           ))}
         </div>
+
+        {/* 自定义方向表单：与上方卡片风格一致，点击「自定义方向」后展开 */}
+        {customOpen && (
+          <section className="glass anim-rise mt-4 p-6">
+            <h2 className="t-h3 text-ink">✏️ 自定义练习方向</h2>
+            <p className="t-body mt-2 text-sm text-brand-sec/80">
+              设定你想练习的方向名称和具体场景，即可开始专属陪练。
+            </p>
+            <label className="mt-4 block text-sm font-semibold text-ink">
+              方向名称
+            </label>
+            <input
+              value={customName}
+              onChange={(e) => setCustomName(e.target.value)}
+              placeholder="例如：销售谈判、相亲破冰、家长会发言…"
+              className="input mt-2"
+            />
+            <label className="mt-4 block text-sm font-semibold text-ink">
+              场景描述
+            </label>
+            <textarea
+              value={customDesc}
+              onChange={(e) => setCustomDesc(e.target.value)}
+              rows={3}
+              placeholder="描述一下这个场景：你在哪、面对谁、想达成什么…"
+              className="input mt-2 resize-none"
+            />
+            <div className="mt-4 flex gap-3">
+              <button onClick={startCustom} className="btn btn-primary">
+                开始练习 →
+              </button>
+              <button
+                onClick={() => setCustomOpen(false)}
+                className="btn btn-ghost"
+              >
+                取消
+              </button>
+            </div>
+          </section>
+        )}
       </main>
     );
   }

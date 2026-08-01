@@ -52,38 +52,40 @@ export default function DailyBlock({ title, emoji, accent, items }: Props) {
   const item = items[index];
 
   return (
-    <div className="glass card-hover anim-pop flex aspect-square flex-col p-5">
+    <div className="glass card-hover anim-pop flex h-40 flex-col p-4">
       {/* 标题区域 */}
       <div className="flex items-center justify-between gap-2">
-        <div className="flex min-w-0 items-center gap-2.5">
+        <div className="flex min-w-0 items-center gap-2">
           <span
-            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${accent} text-lg shadow-[0_6px_16px_rgba(124,92,255,0.3)]`}
+            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${accent} text-base shadow-[0_5px_14px_rgba(124,92,255,0.3)]`}
           >
             {emoji}
           </span>
-          <span className="t-h3 truncate leading-tight text-ink">{title}</span>
+          <span className="t-h3 truncate text-[1.05rem] leading-tight text-ink">
+            {title}
+          </span>
         </div>
-        <span className="t-label shrink-0 rounded-full bg-white/60 px-2 py-1 text-brand-sec/60">
+        <span className="t-label shrink-0 rounded-full bg-white/60 px-2 py-0.5 text-[0.65rem] text-brand-sec/60">
           {formatCNDate(now)}
         </span>
       </div>
 
       {/* 内容展示区域 */}
-      <div className="mt-4 flex min-h-0 flex-1 flex-col justify-center overflow-hidden">
-        <p className="text-[0.95rem] font-medium leading-relaxed text-ink">
+      <div className="mt-3 flex min-h-0 flex-1 flex-col justify-center overflow-hidden">
+        <p className="text-sm font-medium leading-relaxed text-ink">
           {item.text}
         </p>
         {item.source && (
-          <p className="mt-3 text-xs text-brand-sec/70">—— {item.source}</p>
+          <p className="mt-2 text-[11px] text-brand-sec/70">—— {item.source}</p>
         )}
       </div>
 
       {/* 底部：刷新状态 + 换一条 */}
-      <div className="mt-3 flex items-center justify-between">
-        <span className="t-label text-brand-sec/40">每日自动更新</span>
+      <div className="mt-2 flex items-center justify-between">
+        <span className="t-label text-[0.65rem] text-brand-sec/40">每日自动更新</span>
         <button
           onClick={shuffle}
-          className="btn btn-ghost px-3 py-1.5 text-xs"
+          className="btn btn-ghost px-2.5 py-1 text-[11px]"
           aria-label="换一条"
         >
           换一条

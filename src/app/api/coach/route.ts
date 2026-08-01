@@ -36,6 +36,7 @@ function computeStats(list: ExerciseRecord[]): CoachStats {
     communication: 0,
     interview: 0,
     debate: 0,
+    custom: 0,
   };
   const dimSum: Record<string, number> = {};
   DIMENSION_ORDER.forEach((k) => (dimSum[k] = 0));
