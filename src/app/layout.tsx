@@ -31,13 +31,13 @@ export default function RootLayout({
       className={`${jakarta.variable} ${mono.variable} h-full antialiased`}
     >
       <body className="relative min-h-full flex flex-col">
-        {/* 玻璃拟态背景：彩色模糊光斑 */}
+        {/* 明亮动感背景：浮动彩色光斑 */}
         <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-          <div className="absolute -left-24 -top-24 h-80 w-80 rounded-full bg-[#1856FF]/30 blur-3xl" />
-          <div className="absolute -right-16 top-1/4 h-96 w-96 rounded-full bg-[#07CA6B]/25 blur-3xl" />
-          <div className="absolute -bottom-24 left-1/4 h-80 w-80 rounded-full bg-[#E89558]/25 blur-3xl" />
-          <div className="absolute -right-10 bottom-10 h-72 w-72 rounded-full bg-[#EA2143]/20 blur-3xl" />
-          <div className="absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#3A344E]/10 blur-3xl" />
+          <div className="blob absolute -left-24 -top-24 h-80 w-80 rounded-full bg-[#7C5CFF]/30 blur-3xl" style={{ animationDuration: "16s" }} />
+          <div className="blob absolute -right-16 top-1/4 h-96 w-96 rounded-full bg-[#FF5E9C]/25 blur-3xl" style={{ animationDuration: "20s", animationDelay: "-3s" }} />
+          <div className="blob absolute -bottom-24 left-1/4 h-80 w-80 rounded-full bg-[#22D3EE]/25 blur-3xl" style={{ animationDuration: "18s", animationDelay: "-6s" }} />
+          <div className="blob absolute -right-10 bottom-10 h-72 w-72 rounded-full bg-[#FBBF24]/22 blur-3xl" style={{ animationDuration: "22s", animationDelay: "-9s" }} />
+          <div className="blob absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#A855F7]/15 blur-3xl" style={{ animationDuration: "24s", animationDelay: "-12s" }} />
         </div>
         <AppShell>{children}</AppShell>
       </body>

@@ -92,15 +92,17 @@ export default function CoachPage() {
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-10 lg:px-10">
-      <header className="mb-6">
-        <h1 className="t-h1 text-ink">🎯 教练系统</h1>
-        <p className="t-body mt-3 text-brand-sec/80">
+      <header className="hero-grad anim-rise mb-6 rounded-[22px] p-8 shadow-[0_18px_50px_rgba(124,92,255,0.28)]">
+        <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+          🎯 教练系统
+        </h1>
+        <p className="t-body mt-3 max-w-2xl text-sm text-white/85 sm:text-base">
           基于你过往的练习记录，自动分析强弱项并生成个性化训练方案，动态匹配难度。
         </p>
       </header>
 
       {/* 目标输入 */}
-      <section className="glass p-6">
+      <section className="glass card-hover anim-rise p-6">
         <label className="text-sm font-semibold text-ink">
           你的训练目标 / 当前诉求（可选）
         </label>
@@ -117,7 +119,7 @@ export default function CoachPage() {
         <button
           onClick={generate}
           disabled={loading}
-          className="btn btn-primary mt-4"
+          className="btn btn-gradient mt-4"
         >
           {loading ? "教练分析中…" : "生成我的专属训练方案"}
         </button>
@@ -142,7 +144,7 @@ export default function CoachPage() {
 
       {/* 数据洞察（仅刚生成的方案展示） */}
       {stats && stats.total > 0 && (
-        <section className="glass mt-4 p-6">
+        <section className="glass card-hover anim-rise mt-4 p-6">
           <h3 className="t-label mb-4 text-brand-sec/70">数据洞察</h3>
           <div className="grid gap-6 sm:grid-cols-2">
             <div>
@@ -156,9 +158,9 @@ export default function CoachPage() {
                       <span>{k}</span>
                       <span className="font-semibold text-ink">{v.toFixed(1)}</span>
                     </div>
-                    <div className="mt-1 h-1.5 w-full rounded-full bg-white/40">
+                    <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-white/50">
                       <div
-                        className="h-1.5 rounded-full bg-brand"
+                        className="bar-grad h-1.5 rounded-full transition-[width] duration-700 ease-out"
                         style={{ width: `${Math.max(2, v * 10)}%` }}
                       />
                     </div>
@@ -209,13 +211,13 @@ export default function CoachPage() {
         ) : (
           <div className="space-y-3">
             {history.map((rec) => (
-              <button
-                key={rec.id}
-                onClick={() => viewRecord(rec)}
-                className={`glass-soft flex w-full items-center justify-between p-4 text-left outline-none transition hover:border-white focus-visible:ring-2 focus-visible:ring-brand/60 ${
-                  activeId === rec.id ? "border-brand bg-white/60" : ""
-                }`}
-              >
+                <button
+                  key={rec.id}
+                  onClick={() => viewRecord(rec)}
+                  className={`glass-soft card-hover flex w-full items-center justify-between p-4 text-left outline-none transition hover:border-white focus-visible:ring-2 focus-visible:ring-brand/60 ${
+                    activeId === rec.id ? "border-brand bg-white/60" : ""
+                  }`}
+                >
                 <div className="min-w-0">
                   <div className="truncate text-sm font-medium text-ink">
                     {recordName(rec)}
@@ -238,10 +240,13 @@ export default function CoachPage() {
 
 function PlanCard({ plan }: { plan: CoachPlan }) {
   return (
-    <section className="glass mt-6 p-6">
-      <h2 className="t-h2 text-ink">
-        {plan.level} · 专属训练方案
-      </h2>
+    <section className="glass card-hover anim-rise mt-6 p-6">
+      <div className="mb-3 flex items-center gap-3">
+        <span className="chip bg-gradient-to-r from-brand to-brand-2 text-white">
+          {plan.level}
+        </span>
+        <h2 className="t-h2 text-ink">专属训练方案</h2>
+      </div>
       <p className="t-body mt-3 text-brand-sec/80">{plan.summary}</p>
 
       {plan.focusDimensions?.length > 0 && (
@@ -262,7 +267,7 @@ function PlanCard({ plan }: { plan: CoachPlan }) {
         {plan.weeklyPlan?.map((d, i) => (
           <div
             key={i}
-            className="glass-soft flex gap-3 p-4"
+            className="glass-soft card-hover flex gap-3 p-4"
           >
             <div className="w-16 shrink-0 text-sm font-semibold text-brand-sec">
               {d.day}
@@ -317,7 +322,8 @@ function PlanCard({ plan }: { plan: CoachPlan }) {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="glass-soft p-4 text-center">
+    <div className="glass-soft card-hover anim-pop p-4 text-center">
+      <div className="mx-auto mb-2 h-1 w-10 rounded-full bg-gradient-to-r from-brand to-brand-2" />
       <div className="text-2xl font-bold text-ink">{value}</div>
       <div className="t-label mt-2 text-brand-sec/60">{label}</div>
     </div>

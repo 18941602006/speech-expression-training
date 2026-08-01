@@ -22,12 +22,19 @@ export default function HistoryPage() {
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-10 lg:px-10">
-      <div className="mb-6">
-        <h1 className="t-h1 text-ink">练习历史</h1>
-      </div>
+      <header className="hero-grad anim-rise mb-6 rounded-[22px] p-8 shadow-[0_18px_50px_rgba(124,92,255,0.28)]">
+        <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+          练习历史
+        </h1>
+        <p className="t-body mt-3 text-sm text-white/85">
+          回顾你的每一次练习，看见表达的进步轨迹。
+        </p>
+      </header>
 
-      <section className="glass p-6">
-        <h2 className="t-label mb-3 text-brand-sec/70">进步曲线（综合评分）</h2>
+      <section className="glass card-hover p-6">
+        <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-brand to-brand-2 px-3 py-1 text-xs font-semibold text-white shadow-[0_4px_12px_rgba(124,92,255,0.3)]">
+          进步曲线 · 综合评分
+        </div>
         <ProgressChart data={list} />
       </section>
 
@@ -39,7 +46,7 @@ export default function HistoryPage() {
         )}
         <div className="space-y-3">
           {list.map((ex) => (
-            <div key={ex.id} className="glass-soft p-4">
+            <div key={ex.id} className="glass-soft card-hover p-4">
               <div className="flex items-center justify-between gap-3">
                 <span className="text-sm font-medium text-ink">{ex.topicTitle}</span>
                 <span className="chip shrink-0 bg-white/60 text-brand">
