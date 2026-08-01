@@ -29,16 +29,16 @@ export default function ProgressChart({ data }: { data: ExerciseRecord[] }) {
 
   return (
     <svg viewBox={`0 0 ${w} ${h}`} className="w-full" role="img" aria-label="进步曲线">
-      <line x1={pad} y1={h - pad} x2={w - pad} y2={h - pad} stroke="#cbd5e1" />
-      <line x1={pad} y1={pad} x2={pad} y2={h - pad} stroke="#cbd5e1" />
+      <line x1={pad} y1={h - pad} x2={w - pad} y2={h - pad} stroke="rgba(58,52,78,0.35)" />
+      <line x1={pad} y1={pad} x2={pad} y2={h - pad} stroke="rgba(58,52,78,0.35)" />
       {[0, 5, 10].map((v) => {
         const y = pad + (1 - v / maxScore) * (h - pad * 2);
         return (
           <g key={v}>
-            <text x={pad - 8} y={y + 4} textAnchor="end" className="fill-zinc-400" fontSize="10">
+            <text x={pad - 8} y={y + 4} textAnchor="end" fontSize="10" fill="rgba(58,52,78,0.55)">
               {v}
             </text>
-            <line x1={pad} y1={y} x2={w - pad} y2={y} stroke="#e2e8f0" />
+            <line x1={pad} y1={y} x2={w - pad} y2={y} stroke="rgba(58,52,78,0.12)" />
           </g>
         );
       })}

@@ -22,36 +22,36 @@ export default function HistoryPage() {
   }, []);
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-10">
+    <main className="mx-auto max-w-3xl px-6 py-12">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-[#141414]">练习历史</h1>
-        <Link href="/" className="text-sm text-[#1856FF] hover:underline">
+        <h1 className="t-h1 text-ink">练习历史</h1>
+        <Link href="/" className="text-sm font-medium text-brand hover:underline">
           ← 返回训练
         </Link>
       </div>
 
-      <section className="glass rounded-3xl p-6">
-        <h2 className="mb-2 text-sm font-semibold text-zinc-800">进步曲线（综合评分）</h2>
+      <section className="glass p-6">
+        <h2 className="t-label mb-3 text-brand-sec/70">进步曲线（综合评分）</h2>
         <ProgressChart data={list} />
       </section>
 
       <section className="mt-6">
-        {loading && <p className="text-sm text-zinc-400">加载中…</p>}
-        {error && <p className="text-sm text-[#EA2143]">{error}</p>}
+        {loading && <p className="t-body text-sm text-brand-sec/50">加载中…</p>}
+        {error && <p className="t-body text-sm font-medium text-danger">{error}</p>}
         {!loading && !error && list.length === 0 && (
-          <p className="text-sm text-zinc-400">还没有练习记录，去练一题吧。</p>
+          <p className="t-body text-sm text-brand-sec/50">还没有练习记录，去练一题吧。</p>
         )}
         <div className="space-y-3">
           {list.map((ex) => (
-            <div key={ex.id} className="glass-soft rounded-2xl p-4">
-              <div className="flex items-center justify-between">
-                <span className="font-medium text-zinc-900">{ex.topicTitle}</span>
-                <span className="rounded-full bg-white/60 px-2 py-0.5 text-xs text-[#1856FF]">
+            <div key={ex.id} className="glass-soft p-4">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-sm font-medium text-ink">{ex.topicTitle}</span>
+                <span className="chip shrink-0 bg-white/60 text-brand">
                   {SCENE_LABELS[ex.scene]}
                 </span>
               </div>
-              <p className="mt-1 line-clamp-2 text-sm text-zinc-500">{ex.userInput}</p>
-              <div className="mt-2 flex items-center justify-between text-xs text-zinc-400">
+              <p className="t-body mt-2 line-clamp-2 text-sm text-brand-sec/70">{ex.userInput}</p>
+              <div className="mt-3 flex items-center justify-between text-xs text-brand-sec/50">
                 <span>综合 {ex.overall} / 10</span>
                 <span>{new Date(ex.createdAt).toLocaleString("zh-CN")}</span>
               </div>

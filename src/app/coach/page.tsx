@@ -4,10 +4,11 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { CoachPlan, CoachStats, CoachPlanRecord } from "@/lib/types";
 
+// 难度色标：统一使用设计令牌（success / warning / danger）
 const DIFF_STYLE: Record<string, string> = {
-  基础: "bg-emerald-100/70 text-emerald-700",
-  标准: "bg-amber-100/70 text-amber-700",
-  挑战: "bg-rose-100/70 text-rose-700",
+  基础: "bg-success/10 text-success",
+  标准: "bg-warning/10 text-warning",
+  挑战: "bg-danger/10 text-danger",
 };
 
 const TREND_BADGE: Record<string, string> = {
@@ -91,22 +92,22 @@ export default function CoachPage() {
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-12">
-      <Link href="/" className="text-sm text-[#1856FF] hover:underline">
+      <Link href="/" className="text-sm font-medium text-brand hover:underline">
         ← 返回首页
       </Link>
       <header className="mb-6 mt-3">
-        <h1 className="text-3xl font-bold text-[#141414]">🎯 教练系统</h1>
-        <p className="mt-2 text-zinc-600">
+        <h1 className="t-h1 text-ink">🎯 教练系统</h1>
+        <p className="t-body mt-3 text-brand-sec/80">
           基于你过往的练习记录，自动分析强弱项并生成个性化训练方案，动态匹配难度。
         </p>
       </header>
 
       {/* 目标输入 */}
-      <section className="glass rounded-3xl p-5">
-        <label className="text-sm font-semibold text-zinc-800">
+      <section className="glass p-6">
+        <label className="text-sm font-semibold text-ink">
           你的训练目标 / 当前诉求（可选）
         </label>
-        <p className="mb-2 text-xs text-zinc-400">
+        <p className="t-body mb-3 mt-2 text-xs text-brand-sec/60">
           例如：想提升面试表达、减少口头禅、增强辩论逻辑；留空则按历史数据给通用方案。
         </p>
         <textarea
@@ -114,21 +115,21 @@ export default function CoachPage() {
           onChange={(e) => setGoal(e.target.value)}
           rows={3}
           placeholder="例如：我马上要参加一场技术面试，希望表达更专业、少说废话。"
-          className="w-full resize-none rounded-xl border border-white/60 bg-white/40 p-3 text-sm text-zinc-800 outline-none focus:border-[#1856FF]"
+          className="input resize-none"
         />
         <button
           onClick={generate}
           disabled={loading}
-          className="mt-3 rounded-lg bg-[#1856FF] px-5 py-2 text-sm text-white transition hover:bg-[#0f3fd6] disabled:opacity-50"
+          className="btn btn-primary mt-4"
         >
           {loading ? "教练分析中…" : "生成我的专属训练方案"}
         </button>
-        {error && <p className="mt-2 text-sm text-[#EA2143]">{error}</p>}
+        {error && <p className="mt-3 text-sm font-medium text-danger">{error}</p>}
       </section>
 
       {/* 概览数据（仅刚生成的方案展示） */}
       {stats && (
-        <section className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <section className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
           <Stat label="练习次数" value={String(stats.total)} />
           <Stat
             label="平均总分"
@@ -144,23 +145,23 @@ export default function CoachPage() {
 
       {/* 数据洞察（仅刚生成的方案展示） */}
       {stats && stats.total > 0 && (
-        <section className="glass mt-4 rounded-3xl p-5">
-          <h3 className="mb-3 text-sm font-semibold text-zinc-800">数据洞察</h3>
-          <div className="grid gap-4 sm:grid-cols-2">
+        <section className="glass mt-4 p-6">
+          <h3 className="t-label mb-4 text-brand-sec/70">数据洞察</h3>
+          <div className="grid gap-6 sm:grid-cols-2">
             <div>
-              <p className="mb-2 text-xs font-medium text-zinc-500">
+              <p className="t-label mb-3 text-brand-sec/60">
                 各维度平均（满分 10）
               </p>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {Object.entries(stats.dimensionAvgs).map(([k, v]) => (
                   <div key={k}>
-                    <div className="flex justify-between text-xs text-zinc-600">
+                    <div className="flex justify-between text-xs text-brand-sec/80">
                       <span>{k}</span>
-                      <span>{v.toFixed(1)}</span>
+                      <span className="font-semibold text-ink">{v.toFixed(1)}</span>
                     </div>
-                    <div className="mt-0.5 h-1.5 w-full rounded-full bg-white/40">
+                    <div className="mt-1 h-1.5 w-full rounded-full bg-white/40">
                       <div
-                        className="h-1.5 rounded-full bg-[#1856FF]"
+                        className="h-1.5 rounded-full bg-brand"
                         style={{ width: `${Math.max(2, v * 10)}%` }}
                       />
                     </div>
@@ -169,7 +170,7 @@ export default function CoachPage() {
               </div>
             </div>
             <div>
-              <p className="mb-2 text-xs font-medium text-zinc-500">
+              <p className="t-label mb-3 text-brand-sec/60">
                 高频废话 / 填充词
               </p>
               {stats.topWaste.length ? (
@@ -177,19 +178,17 @@ export default function CoachPage() {
                   {stats.topWaste.map((w) => (
                     <span
                       key={w.word}
-                      className="rounded-full bg-red-100/70 px-2.5 py-1 text-xs text-[#EA2143]"
+                      className="chip bg-danger/10 text-danger"
                     >
                       「{w.word}」×{w.count}
                     </span>
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-zinc-400">暂无明显废话记录</p>
+                <p className="t-body text-xs text-brand-sec/50">暂无明显废话记录</p>
               )}
-              <p className="mb-1 mt-4 text-xs font-medium text-zinc-500">
-                难度动态调整依据
-              </p>
-              <p className="text-xs text-zinc-600">{stats.trend}</p>
+              <p className="t-label mb-2 mt-4 text-brand-sec/60">难度动态调整依据</p>
+              <p className="t-body text-xs text-brand-sec/80">{stats.trend}</p>
             </div>
           </div>
         </section>
@@ -200,35 +199,35 @@ export default function CoachPage() {
 
       {/* 历史方案列表 */}
       <section className="mt-8">
-        <h3 className="mb-3 text-sm font-semibold text-zinc-800">
+        <h3 className="t-h3 mb-3 text-ink">
           历史方案
-          <span className="ml-2 text-xs font-normal text-zinc-400">
+          <span className="ml-2 text-xs font-normal text-brand-sec/50">
             （名称 = 时间 + 需求简要，点击可回看）
           </span>
         </h3>
         {history.length === 0 ? (
-          <p className="text-xs text-zinc-400">
+          <p className="t-body text-xs text-brand-sec/50">
             还没有历史方案，生成一次后会出现在这里。
           </p>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-3">
             {history.map((rec) => (
               <button
                 key={rec.id}
                 onClick={() => viewRecord(rec)}
-                className={`glass-soft flex w-full items-center justify-between rounded-2xl px-4 py-3 text-left transition hover:border-white ${
-                  activeId === rec.id ? "border-[#1856FF] bg-white/60" : ""
+                className={`glass-soft flex w-full items-center justify-between p-4 text-left outline-none transition hover:border-white focus-visible:ring-2 focus-visible:ring-brand/60 ${
+                  activeId === rec.id ? "border-brand bg-white/60" : ""
                 }`}
               >
                 <div className="min-w-0">
-                  <div className="truncate text-sm font-medium text-zinc-800">
+                  <div className="truncate text-sm font-medium text-ink">
                     {recordName(rec)}
                   </div>
-                  <div className="mt-0.5 truncate text-xs text-zinc-500">
+                  <div className="truncate text-xs text-brand-sec/70">
                     {rec.plan.summary}
                   </div>
                 </div>
-                <span className="ml-3 shrink-0 rounded-full bg-white/60 px-2.5 py-0.5 text-xs text-zinc-600">
+                <span className="chip ml-3 shrink-0 bg-white/60 text-brand-sec">
                   {rec.level}
                 </span>
               </button>
@@ -242,19 +241,19 @@ export default function CoachPage() {
 
 function PlanCard({ plan }: { plan: CoachPlan }) {
   return (
-    <section className="glass mt-6 rounded-3xl p-6">
-      <h2 className="text-xl font-bold text-[#141414]">
+    <section className="glass mt-6 p-6">
+      <h2 className="t-h2 text-ink">
         {plan.level} · 专属训练方案
       </h2>
-      <p className="mt-2 text-sm text-zinc-600">{plan.summary}</p>
+      <p className="t-body mt-3 text-brand-sec/80">{plan.summary}</p>
 
       {plan.focusDimensions?.length > 0 && (
-        <div className="mt-3">
-          <span className="text-xs font-medium text-zinc-500">重点提升：</span>
+        <div className="mt-4">
+          <span className="t-label text-brand-sec/60">重点提升：</span>
           {plan.focusDimensions.map((d) => (
             <span
               key={d}
-              className="ml-1.5 inline-block rounded-full bg-white/60 px-2.5 py-0.5 text-xs text-[#1856FF]"
+              className="chip ml-2 bg-white/60 text-brand"
             >
               {d}
             </span>
@@ -262,46 +261,44 @@ function PlanCard({ plan }: { plan: CoachPlan }) {
         </div>
       )}
 
-      <div className="mt-4 space-y-3">
+      <div className="mt-5 space-y-3">
         {plan.weeklyPlan?.map((d, i) => (
           <div
             key={i}
-            className="glass-soft flex gap-3 rounded-2xl p-3"
+            className="glass-soft flex gap-3 p-4"
           >
-            <div className="w-16 shrink-0 text-sm font-semibold text-zinc-700">
+            <div className="w-16 shrink-0 text-sm font-semibold text-brand-sec">
               {d.day}
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-zinc-800">
+                <span className="text-sm font-medium text-ink">
                   {d.scene}
                 </span>
                 <span
-                  className={`rounded px-2 py-0.5 text-xs ${
-                    DIFF_STYLE[d.difficulty] || "bg-white/50 text-zinc-600"
-                  }`}
+                  className={`chip ${DIFF_STYLE[d.difficulty] || "bg-white/50 text-brand-sec"}`}
                 >
                   {d.difficulty}
                 </span>
               </div>
-              <p className="mt-1 text-xs text-zinc-500">重点：{d.focus}</p>
-              <p className="mt-0.5 text-sm text-zinc-700">{d.task}</p>
+              <p className="t-body mt-2 text-xs text-brand-sec/70">重点：{d.focus}</p>
+              <p className="t-body text-sm text-ink">{d.task}</p>
             </div>
           </div>
         ))}
       </div>
 
       {plan.dynamicNote && (
-        <div className="mt-4 rounded-xl bg-white/40 p-3 text-xs text-zinc-600">
-          <span className="font-medium text-zinc-700">难度动态调整：</span>
-          {plan.dynamicNote}
+        <div className="mt-5 rounded-lg bg-white/40 p-3">
+          <span className="t-label text-brand-sec/70">难度动态调整：</span>
+          <span className="t-body text-xs text-brand-sec/80">{plan.dynamicNote}</span>
         </div>
       )}
 
       {plan.tips?.length > 0 && (
-        <div className="mt-3">
-          <p className="text-xs font-medium text-zinc-500">训练建议</p>
-          <ul className="mt-1 list-disc space-y-0.5 pl-5 text-xs text-zinc-600">
+        <div className="mt-4">
+          <p className="t-label text-brand-sec/70">训练建议</p>
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-brand-sec/80">
             {plan.tips.map((t, i) => (
               <li key={i}>{t}</li>
             ))}
@@ -309,10 +306,10 @@ function PlanCard({ plan }: { plan: CoachPlan }) {
         </div>
       )}
 
-      <div className="mt-5">
+      <div className="mt-6">
         <Link
           href="/"
-          className="rounded-lg bg-[#3A344E] px-4 py-2 text-sm text-white transition hover:bg-[#2a2638]"
+          className="btn btn-secondary"
         >
           去练习 →
         </Link>
@@ -323,9 +320,9 @@ function PlanCard({ plan }: { plan: CoachPlan }) {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="glass-soft rounded-2xl p-3 text-center">
-      <div className="text-lg font-bold text-[#141414]">{value}</div>
-      <div className="mt-0.5 text-xs text-zinc-500">{label}</div>
+    <div className="glass-soft p-4 text-center">
+      <div className="text-2xl font-bold text-ink">{value}</div>
+      <div className="t-label mt-2 text-brand-sec/60">{label}</div>
     </div>
   );
 }

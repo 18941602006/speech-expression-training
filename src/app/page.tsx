@@ -311,45 +311,46 @@ export default function Home() {
   if (view === "home") {
     return (
       <main className="mx-auto max-w-3xl px-6 py-16">
-        <header className="mb-10 text-center">
-          <h1 className="text-3xl font-bold tracking-tight text-[#141414]">言语表达训练</h1>
-          <p className="mt-3 text-zinc-600">
+        <header className="mb-8 text-center">
+          <h1 className="t-h1 text-ink">言语表达训练</h1>
+          <p className="t-body mt-4 text-brand-sec/80">
             选一个场景，进入陪练。AI 扮演角色与你对话、引导你表达，右侧实时分析你的每句话。
           </p>
-          <Link href="/history" className="mt-3 inline-block text-sm text-[#1856FF] hover:underline">
+          <Link href="/history" className="mt-3 inline-block text-sm font-medium text-brand hover:underline">
             查看练习历史 →
           </Link>
         </header>
 
-        {/* 教练系统入口 */}
-        <section className="glass mb-8 rounded-3xl p-6">
-          <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
+        {/* 教练系统入口（bento 通栏卡片） */}
+        <section className="glass mb-6 p-6">
+          <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
             <div>
-              <h2 className="text-lg font-semibold text-[#141414]">🎯 教练系统</h2>
-              <p className="mt-1 max-w-xl text-sm text-zinc-600">
+              <h2 className="t-h3 text-ink">🎯 教练系统</h2>
+              <p className="t-body mt-2 max-w-xl text-brand-sec/80">
                 根据你的历史练习数据，自动分析强弱项、动态调整难度，生成专属训练方案。
               </p>
             </div>
             <Link
               href="/coach"
-              className="shrink-0 rounded-lg bg-[#1856FF] px-4 py-2 text-sm text-white transition hover:bg-[#0f3fd6]"
+              className="btn btn-primary shrink-0"
             >
               进入教练系统 →
             </Link>
           </div>
         </section>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {/* 场景选择：显式网格系统（移动 1 列 → 平板 2 列 → 桌面 4 列） */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {(Object.keys(SCENE_LABELS) as Scene[]).map((s) => (
             <button
               key={s}
               onClick={() => pickScene(s)}
-              className="glass rounded-3xl p-6 text-left transition hover:border-white hover:shadow-lg"
+              className="glass p-6 text-left outline-none transition hover:border-white hover:shadow-lg focus-visible:ring-2 focus-visible:ring-brand/60"
             >
-              <div className="text-lg font-semibold text-[#141414]">{SCENE_LABELS[s]}</div>
-              <div className="mt-1 text-sm text-zinc-500">{SCENE_DESC[s]}</div>
-              <div className="mt-3 text-xs text-zinc-400">
-                内置 {PRESET_TOPICS[s].length} 道预设题，可 AI 扩展
+              <div className="t-h3 text-ink">{SCENE_LABELS[s]}</div>
+              <div className="t-body mt-2 text-sm text-brand-sec/80">{SCENE_DESC[s]}</div>
+              <div className="t-label mt-4 text-brand-sec/50">
+                内置 {PRESET_TOPICS[s].length} 题 · 可 AI 扩展
               </div>
             </button>
           ))}
@@ -360,39 +361,39 @@ export default function Home() {
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8">
-      <button onClick={backHome} className="mb-4 text-sm text-zinc-500 hover:text-zinc-800">
+      <button onClick={backHome} className="mb-4 text-sm font-medium text-brand-sec/70 hover:text-ink">
         ← 返回场景选择
       </button>
 
       {topic && (
-        <section className="glass rounded-3xl p-5">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-[#141414]">{topic.title}</h2>
-            <span className="rounded-full bg-white/60 px-3 py-1 text-xs text-[#1856FF]">
+        <section className="glass p-6">
+          <div className="flex items-center justify-between gap-4">
+            <h2 className="t-h3 text-ink">{topic.title}</h2>
+            <span className="chip bg-white/60 text-brand">
               {scene ? SCENE_LABELS[scene] : ""}
               {scene ? ` · ${ROLE_NAME[scene]}` : ""}
             </span>
           </div>
-          <p className="mt-2 text-sm text-zinc-600">{topic.scenario}</p>
-          <p className="mt-1 text-sm text-zinc-800">
-            <span className="font-medium">练习要求：</span>
+          <p className="t-body mt-3 text-sm text-brand-sec/80">{topic.scenario}</p>
+          <p className="t-body mt-2 text-sm text-ink">
+            <span className="font-semibold">练习要求：</span>
             {topic.prompt}
           </p>
-          <p className="mt-1 text-sm text-zinc-500">
-            <span className="font-medium">关注点：</span>
+          <p className="t-body mt-2 text-sm text-brand-sec/80">
+            <span className="font-semibold">关注点：</span>
             {topic.focus}
           </p>
-          <div className="mt-3 flex gap-2">
+          <div className="mt-4 flex flex-wrap gap-2">
             <button
               onClick={newPresetTopic}
-              className="rounded-lg border border-white/60 bg-white/50 px-3 py-1.5 text-sm text-zinc-700 transition hover:bg-white/70"
+              className="btn btn-ghost"
             >
               换一题（题库）
             </button>
             <button
               onClick={aiTopic}
               disabled={loadingTopic}
-              className="rounded-lg bg-[#1856FF] px-3 py-1.5 text-sm text-white transition hover:bg-[#0f3fd6] disabled:opacity-50"
+              className="btn btn-primary"
             >
               {loadingTopic ? "出题中…" : "AI 出题"}
             </button>
@@ -402,13 +403,13 @@ export default function Home() {
 
       <div className="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-2">
         {/* 左栏：陪练对话 */}
-        <section className="glass flex h-[74vh] flex-col rounded-3xl p-4">
-          <h3 className="mb-3 text-sm font-semibold text-zinc-800">
+        <section className="glass flex h-[74vh] flex-col p-4">
+          <h3 className="t-label mb-3 text-brand-sec/70">
             陪练对话{scene ? ` · ${ROLE_NAME[scene]}` : ""}
           </h3>
           <div
             ref={chatScrollRef}
-            className="min-h-0 flex-1 space-y-3 overflow-y-auto rounded-2xl bg-white/30 p-3"
+            className="min-h-0 flex-1 space-y-3 overflow-y-auto rounded-lg bg-white/30 p-3"
           >
             {chat.map((m, i) => (
               <div
@@ -416,17 +417,17 @@ export default function Home() {
                 className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
               >
                 <div
-                  className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-3 py-2 text-sm ${
+                  className={`max-w-[85%] whitespace-pre-wrap rounded-lg px-3 py-2 text-sm ${
                     m.role === "user"
-                      ? "bg-[#1856FF] text-white"
-                      : "bg-white/70 text-zinc-800"
+                      ? "bg-brand text-white"
+                      : "bg-white/70 text-ink"
                   }`}
                 >
                   {m.content}
                 </div>
               </div>
             ))}
-            {chatBusy && <div className="text-xs text-zinc-500">对方正在输入…</div>}
+            {chatBusy && <div className="text-xs text-brand-sec/60">对方正在输入…</div>}
           </div>
           <div className="mt-3 flex items-end gap-2">
             <div className="group relative flex-1">
@@ -436,7 +437,7 @@ export default function Home() {
                 title="拖拽调整输入框高度（底边固定）"
                 className="absolute -top-2 left-0 right-0 z-10 flex h-3 cursor-ns-resize items-center justify-center"
               >
-                <span className="h-1 w-12 rounded-full bg-white/70 transition-colors group-hover:bg-[#1856FF]" />
+                <span className="h-1 w-12 rounded-full bg-white/70 transition-colors group-hover:bg-brand" />
               </div>
               <textarea
                 ref={inputRef}
@@ -450,21 +451,19 @@ export default function Home() {
                 }}
                 style={{ height: inputH }}
                 placeholder="说点什么，或点 🎤 语音输入（Enter 发送，Shift+Enter 换行）"
-                className="w-full resize-none overflow-auto rounded-lg border border-white/60 bg-white/40 p-2 text-sm text-zinc-800 outline-none focus:border-[#1856FF]"
+                className="input resize-none overflow-auto"
               />
             </div>
             <button
               onClick={toggleListen}
-              className={`rounded-lg px-3 py-2 text-sm text-white transition ${
-                listening ? "bg-[#EA2143] hover:bg-[#c01a39]" : "bg-[#3A344E] hover:bg-[#2a2638]"
-              }`}
+              className={`btn ${listening ? "btn-danger" : "btn-secondary"}`}
             >
               {listening ? "■ 停止" : "🎤 语音"}
             </button>
             <button
               onClick={sendChat}
               disabled={chatBusy || !chatInput.trim()}
-              className="rounded-lg bg-[#1856FF] px-4 py-2 text-sm text-white transition hover:bg-[#0f3fd6] disabled:opacity-50"
+              className="btn btn-primary"
             >
               发送
             </button>
@@ -472,23 +471,23 @@ export default function Home() {
         </section>
 
         {/* 右栏：实时表达分析 */}
-        <section className="glass flex h-[74vh] flex-col rounded-3xl p-4">
-          <h3 className="mb-2 text-sm font-semibold text-zinc-800">实时表达分析</h3>
+        <section className="glass flex h-[74vh] flex-col p-4">
+          <h3 className="t-label mb-3 text-brand-sec/70">实时表达分析</h3>
           {/* 颜色图例：一眼区分原句 / 废话 / 建议 / 问题编号 */}
-          <div className="mb-3 flex flex-wrap gap-x-4 gap-y-1 text-xs">
-            <span className="inline-flex items-center gap-1.5 text-zinc-500">
+          <div className="mb-3 flex flex-wrap gap-x-4 gap-y-2 text-xs">
+            <span className="inline-flex items-center gap-1.5 text-brand-sec/70">
               <span className="inline-block h-3 w-3 rounded bg-white/60 ring-1 ring-white/70" />
               原句
             </span>
-            <span className="inline-flex items-center gap-1.5 text-[#EA2143]">
-              <span className="inline-block h-3 w-3 rounded bg-red-100 ring-1 ring-red-300" />
+            <span className="inline-flex items-center gap-1.5 text-danger">
+              <span className="inline-block h-3 w-3 rounded bg-danger/15 ring-1 ring-danger/40" />
               废话（红色删除线）
             </span>
-            <span className="inline-flex items-center gap-1.5 text-[#07CA6B]">
-              <span className="inline-block h-3 w-3 rounded bg-emerald-100 ring-1 ring-emerald-300" />
+            <span className="inline-flex items-center gap-1.5 text-success">
+              <span className="inline-block h-3 w-3 rounded bg-success/15 ring-1 ring-success/40" />
               建议说法（绿底）
             </span>
-            <span className="inline-flex items-center gap-1.5 text-zinc-500">
+            <span className="inline-flex items-center gap-1.5 text-brand-sec/70">
               <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
                 1
               </span>
@@ -497,7 +496,7 @@ export default function Home() {
           </div>
           <div
             ref={analysisScrollRef}
-            className="min-h-0 flex-1 space-y-3 overflow-y-auto rounded-2xl bg-white/30 p-3"
+            className="min-h-0 flex-1 space-y-3 overflow-y-auto rounded-lg bg-white/30 p-3"
           >
             {chat.map((m, i) => {
               if (m.role !== "user") return null;
@@ -506,16 +505,16 @@ export default function Home() {
               return (
                 <div
                   key={i}
-                  className="glass-soft rounded-2xl p-3"
+                  className="glass-soft p-3"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-zinc-700">
+                    <span className="text-xs font-semibold text-brand-sec">
                       第 {turn} 轮 · 你的表达
                     </span>
-                    {a && <span className="text-xs text-[#1856FF]">{a.overall}/10</span>}
+                    {a && <span className="text-xs font-semibold text-brand">{a.overall}/10</span>}
                   </div>
                   {!a ? (
-                    <p className="mt-2 text-xs text-zinc-400">分析中…</p>
+                    <p className="mt-2 text-xs text-brand-sec/50">分析中…</p>
                   ) : (
                     <>
                       {a.sentences.length > 0 && (
@@ -537,18 +536,16 @@ export default function Home() {
                               }
                             });
                             return (
-                              <div key={si} className="rounded-2xl border border-white/50 bg-white/40 p-2">
+                              <div key={si} className="rounded-lg border border-white/50 bg-white/40 p-2">
                                 {/* 原句：废话红色删除线，右上角彩色圈数字标出问题编号 */}
-                                <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-zinc-400">
-                                  原句
-                                </p>
-                                <p className="flex flex-wrap gap-0 text-sm leading-relaxed text-zinc-800">
+                                <p className="t-label mb-1 text-brand-sec/50">原句</p>
+                                <p className="flex flex-wrap gap-0 text-sm leading-relaxed text-ink">
                                   {s.segments.map((seg, j) =>
                                     seg.isWaste ? (
                                       <span key={j}>
                                         <span
                                           title={seg.reason || "可省略"}
-                                          className="rounded bg-red-100 px-0.5 text-[#EA2143] line-through decoration-red-400 decoration-2"
+                                          className="rounded bg-danger/10 px-0.5 text-danger line-through decoration-danger decoration-2"
                                         >
                                           {seg.text}
                                         </span>
@@ -563,32 +560,30 @@ export default function Home() {
                                 </p>
                                 {/* 建议说法：去掉废话后的干净版本，绿底对照 */}
                                 {hasWaste && (
-                                  <div className="mt-2 rounded-xl bg-emerald-100/70 p-2">
-                                    <p className="mb-0.5 text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
-                                      建议说法（去掉废话）
-                                    </p>
-                                    <p className="text-sm leading-relaxed text-emerald-900">
+                                  <div className="mt-2 rounded-lg bg-success/10 p-2">
+                                    <p className="t-label mb-1 text-success">建议说法（去掉废话）</p>
+                                    <p className="text-sm leading-relaxed text-ink">
                                       {clean}
                                     </p>
                                   </div>
                                 )}
                                 {s.comment && (
-                                  <p className="mt-1.5 text-xs text-zinc-500">
+                                  <p className="mt-2 text-xs text-brand-sec/80">
                                     点评：{s.comment}
                                   </p>
                                 )}
                                 {/* 逐条建议：彩色圈数字与上方原句一一对应 */}
                                 {hasWaste && (
-                                  <ul className="mt-1.5 space-y-1 text-xs">
+                                  <ul className="mt-2 space-y-1 text-xs">
                                     {wastes.map((seg, j) => (
                                       <li key={j} className="flex items-start gap-1.5">
                                         <CircleNum n={j} />
-                                        <span className="text-zinc-700">
-                                          <span className="font-medium text-[#EA2143]">
+                                        <span className="text-brand-sec/90">
+                                          <span className="font-semibold text-danger">
                                             可省略「{seg.text}」
                                           </span>
                                           {seg.reason ? (
-                                            <span className="text-zinc-500"> — {seg.reason}</span>
+                                            <span className="text-brand-sec/60"> — {seg.reason}</span>
                                           ) : null}
                                         </span>
                                       </li>
@@ -601,9 +596,9 @@ export default function Home() {
                         </div>
                       )}
                       {a.suggestions.length > 0 && (
-                        <div className="mt-2">
-                          <p className="text-xs font-medium text-amber-700">💡 整体改进建议</p>
-                          <ul className="mt-1 list-disc space-y-0.5 pl-4 text-xs text-zinc-600">
+                        <div className="mt-3">
+                          <p className="t-label text-warning">💡 整体改进建议</p>
+                          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-brand-sec/80">
                             {a.suggestions.map((s, i2) => (
                               <li key={i2}>{s}</li>
                             ))}
@@ -611,9 +606,9 @@ export default function Home() {
                         </div>
                       )}
                       {a.betterVersion && (
-                        <div className="mt-2">
-                          <p className="text-sm font-semibold text-emerald-700">更好的说法（整体重写）</p>
-                          <p className="mt-1 rounded-xl bg-emerald-100/70 p-2 text-sm leading-relaxed text-emerald-900">
+                        <div className="mt-3">
+                          <p className="t-h3 text-success">更好的说法（整体重写）</p>
+                          <p className="t-body mt-2 rounded-lg bg-success/10 p-3 text-ink">
                             {a.betterVersion}
                           </p>
                         </div>
@@ -629,16 +624,16 @@ export default function Home() {
 
       <div className="mt-4 flex items-center gap-3">
         {savedOk ? (
-          <span className="text-sm text-[#07CA6B]">✓ 已保存到练习历史</span>
+          <span className="text-sm font-medium text-success">✓ 已保存到练习历史</span>
         ) : (
           <button
             onClick={saveExercise}
-            className="rounded-lg bg-[#3A344E] px-4 py-1.5 text-sm text-white transition hover:bg-[#2a2638]"
+            className="btn btn-secondary"
           >
             结束并保存本次练习
           </button>
         )}
-        {saveError && <span className="text-sm text-[#EA2143]">{saveError}</span>}
+        {saveError && <span className="text-sm font-medium text-danger">{saveError}</span>}
       </div>
     </main>
   );
