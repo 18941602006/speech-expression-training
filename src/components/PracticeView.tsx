@@ -7,8 +7,8 @@ import {
   type Topic,
   type ScoreResult,
 } from "@/lib/types";
-import { ROLE_NAME } from "@/lib/roles";
-import { randomPresetTopic, PRESET_TOPICS } from "@/lib/topics";
+import { ROLE_NAME, getRoleVariant } from "@/lib/roles";
+import { randomTopicForVariant, PRESET_TOPICS } from "@/lib/topics";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -45,12 +45,17 @@ export default function PracticeView({
   scene,
   topic: initialTopic,
   onBack,
+  roleVariantId,
 }: {
   scene: Scene;
   topic: Topic;
   onBack: () => void;
+  roleVariantId?: string;
 }) {
   const [topic, setTopic] = useState<Topic>(initialTopic);
+  // 角色变体：选中后替换默认角色名与陪练设定
+  const variant = getRoleVariant(scene, roleVariantId);
+  const roleName = variant?.name ?? ROLE_NAME[scene];
 
   const [chat, setChat] = useState<Msg[]>([
     { role: "assistant", content: greetingFor(scene, initialTopic) },
@@ -87,7 +92,7 @@ export default function PracticeView({
   }, [chatInput]);
 
   function greetingFor(s: Scene, t: Topic | null): string {
-    const role = ROLE_NAME[s];
+    const role = getRoleVariant(s, roleVariantId)?.name ?? ROLE_NAME[s];
     return (
       `我们开始陪练吧。我是今天的${role}。\n` +
       `题目：「${t?.title ?? "即兴练习"}」\n` +
@@ -132,8 +137,7 @@ export default function PracticeView({
   }
 
   function newPresetTopic() {
-    if (PRESET_TOPICS[scene].length === 0) return; // 自定义方向无题库
-    loadTopic(randomPresetTopic(scene));
+    loadTopic(randomTopicForVariant(scene, roleVariantId));
   }
 
   // 拖拽调整输入框高度：输入框位于面板底部、底边固定，仅顶部手柄可拖（向上拉变高、向下拉变矮），并限制上下限
@@ -213,12 +217,12 @@ export default function PracticeView({
         fetch("/api/ai", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ mode: "chat", scene, topic, messages: next }),
+          body: JSON.stringify({ mode: "chat", scene, topic, messages: next, rolePrompt: variant?.prompt }),
         }).then((r) => r.json()),
         fetch("/api/ai", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ mode: "score", scene, topic, userInput: text }),
+          body: JSON.stringify({ mode: "score", scene, topic, userInput: text, rolePrompt: variant?.prompt }),
         }).then((r) => r.json()),
       ]);
 
@@ -299,7 +303,7 @@ export default function PracticeView({
           <h2 className="t-h3 text-ink">{topic.title}</h2>
           <span className="chip bg-gradient-to-r from-brand to-brand-2 text-white">
             {SCENE_LABELS[scene]}
-            {` · ${ROLE_NAME[scene]}`}
+            {` · ${roleName}`}
           </span>
         </div>
         <p className="t-body mt-3 text-sm text-brand-sec/80">{topic.scenario}</p>
@@ -331,7 +335,7 @@ export default function PracticeView({
         {/* 左栏：陪练对话 */}
         <section className="glass anim-rise flex h-[74vh] flex-col p-4" style={{ animationDelay: "40ms" }}>
           <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-brand to-brand-2 px-3 py-1 text-xs font-semibold text-white shadow-[0_4px_12px_rgba(124,92,255,0.3)]">
-            陪练对话{` · ${ROLE_NAME[scene]}`}
+            陪练对话{` · ${roleName}`}
           </div>
           <div
             ref={chatScrollRef}

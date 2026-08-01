@@ -86,6 +86,107 @@ export const PRESET_TOPICS: Record<Scene, Topic[]> = {
   custom: [],
 };
 
+// ===== 角色变体专属题（key = `${scene}:${variantId}`）=====
+// 每进入一个角色变体，会优先从「变体题 + 场景题」中混合随机抽题，让练习更贴合角色。
+const VARIANT_TOPICS: Record<string, Topic[]> = {
+  "speech:keynote": [
+    {
+      title: "融资路演开场",
+      scenario: "你是一家 AI 初创的创始人，要在投资人面前用 60 秒讲清为什么现在必须投你。",
+      prompt: "用一句话钩住注意力，再讲市场痛点与你的差异化优势。",
+      focus: "价值前置、数据感、自信",
+    },
+  ],
+  "speech:ted": [
+    {
+      title: "用故事讲清一个概念",
+      scenario: "你要向普通听众解释「为什么睡眠比加班更重要」。",
+      prompt: "从一个真实小故事切入，再用一个类比让人秒懂。",
+      focus: "钩子、叙事、类比",
+    },
+  ],
+  "speech:toast": [
+    {
+      title: "婚礼祝酒词",
+      scenario: "你是新郎的多年好友，要在席间致一段 1 分钟祝酒词。",
+      prompt: "真诚、具体（提一件你们之间的小事）、有温度地祝福。",
+      focus: "真诚、具体、节奏",
+    },
+  ],
+  "communication:friend": [
+    {
+      title: "向朋友倾诉压力",
+      scenario: "你最近被工作压得喘不过气，想跟好朋友聊聊。",
+      prompt: "说出你的真实感受，也试着听听朋友的建议。",
+      focus: "真实、脆弱、倾听",
+    },
+  ],
+  "communication:manager": [
+    {
+      title: "向上汇报争取资源",
+      scenario: "你想向老板申请再加一名人手，但预算紧张。",
+      prompt: "结论先行，用数据讲清缺口与回报，给老板一个好答应的方案。",
+      focus: "结论先行、数据、可选方案",
+    },
+  ],
+  "communication:conflict": [
+    {
+      title: "和家人的分歧",
+      scenario: "你和父母在「是否换城市工作」上意见相左。",
+      prompt: "表达你的立场，同时尊重对方，寻找可共识的部分。",
+      focus: "倾听、求同、非攻击",
+    },
+  ],
+  "interview:hr": [
+    {
+      title: "行为面试：团队冲突",
+      scenario: "HR 问：讲一次你解决团队冲突的经历。",
+      prompt: "用 STAR 结构讲清背景、你的行动、结果与成长。",
+      focus: "STAR、复盘、成长",
+    },
+  ],
+  "interview:tech": [
+    {
+      title: "技术面试：系统设计",
+      scenario: "面试官让你设计一个短链服务的高并发方案。",
+      prompt: "边想边说：先澄清需求，再讲核心组件与权衡。",
+      focus: "拆解、权衡、表达清晰",
+    },
+  ],
+  "interview:stress": [
+    {
+      title: "压力面试：质疑经历",
+      scenario: "面试官反复质疑你上一段经历的真实性。",
+      prompt: "稳住情绪，给出结构化、可被验证的回答，不急着辩解。",
+      focus: "稳住、结构化、可信",
+    },
+  ],
+  "debate:aff": [
+    {
+      title: "立论：AI 应进校园",
+      scenario: "辩题「人工智能应当全面进入中小学课堂」，你持正方开篇。",
+      prompt: "给出 2-3 个核心论点并简述论证逻辑。",
+      focus: "论点明确、论据、结构",
+    },
+  ],
+  "debate:neg": [
+    {
+      title: "反驳：短视频害处",
+      scenario: "辩题「短视频对青少年弊大于利」，你持反方反驳对方立论。",
+      prompt: "指出对方证据不足或逻辑漏洞，并提出反击。",
+      focus: "精准拆解、不跑题",
+    },
+  ],
+  "debate:judge": [
+    {
+      title: "评委出题：立论+反驳",
+      scenario: "你抽到辩题「远程办公利大于弊」，评委要求你先立论再模拟反驳。",
+      prompt: "给出立论，然后站在反方模拟一次有力反驳。",
+      focus: "双边视角、逻辑、表达",
+    },
+  ],
+};
+
 const FALLBACK_TOPIC: Topic = {
   title: "即兴练习",
   scenario: "请围绕该场景自由发挥。",
@@ -97,4 +198,17 @@ export function randomPresetTopic(scene: Scene): Topic {
   const list = PRESET_TOPICS[scene];
   if (!list || list.length === 0) return FALLBACK_TOPIC;
   return list[Math.floor(Math.random() * list.length)];
+}
+
+// 按「场景 + 角色变体」混合随机抽题：变体专属题优先混入，再与场景基础题合并
+export function randomTopicForVariant(
+  scene: Scene,
+  variantId?: string | null,
+): Topic {
+  const key = `${scene}:${variantId ?? ""}`;
+  const vTopics = VARIANT_TOPICS[key] || [];
+  const sTopics = PRESET_TOPICS[scene] || [];
+  const all = [...vTopics, ...sTopics];
+  if (all.length === 0) return FALLBACK_TOPIC;
+  return all[Math.floor(Math.random() * all.length)];
 }

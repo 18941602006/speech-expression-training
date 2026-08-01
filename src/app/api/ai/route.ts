@@ -121,7 +121,8 @@ export async function POST(req: Request) {
       const label = SCENE_LABELS[scene] || scene;
       const topic = (body.topic as Topic) || ({} as Topic);
       const incoming = (body.messages as ChatMessage[]) || [];
-      const rolePrompt = ROLE_PROMPT[scene] || "";
+      // 若前端传入角色变体 prompt，则以其覆盖该场景默认角色设定
+      const rolePrompt = (body.rolePrompt as string) || ROLE_PROMPT[scene] || "";
       const system: ChatMessage = {
         role: "system",
         content:
